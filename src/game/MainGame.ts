@@ -66,6 +66,7 @@ export class MainGame extends Scene {
         this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
             EventBus.off('start-game', this.startGame, this);
             EventBus.off('restart-game', this.restartGame, this);
+            this.scale.off('resize', this.resize, this);
         });
 
         this.scale.on('resize', this.resize, this);
@@ -81,24 +82,28 @@ export class MainGame extends Scene {
         this.bg.setPosition(width / 2, height / 2);
         const scaleX = width / this.bg.width;
         const scaleY = height / this.bg.height;
-        this.bg.setScale(Math.max(scaleX, scaleY));
+        const bgScale = Math.max(scaleX, scaleY);
+        this.bg.setScale(bgScale);
 
         const isLandscape = width > height;
 
-        // Adjust goalkeeper size (max 35% of height on landscape to avoid blocking kicker)
-        const gkTargetSize = isLandscape ? height * 0.35 : width * 0.6;
-        const gkScale = gkTargetSize / 1024; 
+        // Adjust goalkeeper size (scale relative to background/goal size to remain proportional across all screen sizes)
+        // In landscape, we scale based on height * 0.35, but cap it using bgScale to avoid it getting too large.
+        // In portrait, we scale strictly proportional to bgScale so it matches the goal post size perfectly.
+        const gkScale = isLandscape 
+            ? Math.min((height * 0.35) / 1024, bgScale * 0.48) 
+            : bgScale * 0.48;
         this.goalkeeper.setScale(gkScale);
         this.goalkeeper.setPosition(width / 2, height - (isLandscape ? 20 : 40));
 
-        // Adjust kicker size (max 15% of height on landscape)
-        const kickerTargetSize = isLandscape ? height * 0.15 : width * 0.25;
-        const kickerScale = kickerTargetSize / 1024;
+        // Adjust kicker size (scale relative to background to maintain perspective)
+        const kickerScale = isLandscape
+            ? Math.min((height * 0.15) / 1024, bgScale * 0.22)
+            : bgScale * 0.22;
         this.kicker.setScale(kickerScale);
         this.fixedStartX = width / 2;
         
         // Calculate visual position on the grass based on background scale
-        const bgScale = Math.max(scaleX, scaleY);
         const bgDisplayHeight = this.bg.height * bgScale;
         // Place kicker slightly below the background's visual center
         let targetY = (height / 2) + (bgDisplayHeight * 0.08);
@@ -199,7 +204,7 @@ export class MainGame extends Scene {
             );
 
             const football = this.add.sprite(startX, startY, 'football');
-            football.setScale(0.05); // Very small at start
+            football.setScale(0.035); // Very small at start (0.05 * 0.7)
             football.setInteractive({ useHandCursor: true });
             
             // Hitbox padding for mobile (放寬為寬度的 1.5 倍以降低點擊難度)
@@ -210,9 +215,11 @@ export class MainGame extends Scene {
             const duration = 2000 - (progress * 1000); // 2000ms -> 1000ms speed
 
             const isLandscape = width > height;
-            const maxBallSize = isLandscape ? height * 0.2 : width * 0.3; // Ball max size
-            const maxScale = maxBallSize / 200; // Base texture is 200px
-            const minScale = 0.05;
+            const bgScale = Math.max(width / this.bg.width, height / this.bg.height);
+            const maxScale = isLandscape
+                ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * 0.18)
+                : bgScale * 0.18;
+            const minScale = 0.035;
 
             const tween = this.tweens.add({
                 targets: football,
@@ -260,13 +267,19 @@ export class MainGame extends Scene {
                     this.goalkeeper.setAngle(0);
                     this.goalkeeper.setFrame(0);
 
-                    if (diffX > 50) {
+                    const gkScale = this.goalkeeper.scale;
+                    const threshold = 220 * gkScale;
+                    const diveDistance = 360 * gkScale;
+                    const diveHeight = 70 * gkScale;
+                    const jumpHeight = 270 * gkScale;
+
+                    if (diffX > threshold) {
                         // Dive Right (Frame 1 + position offset tween)
                         this.goalkeeper.setFrame(1);
                         this.tweens.add({
                             targets: this.goalkeeper,
-                            x: this.gkStartX + 80,
-                            y: this.gkStartY + 15,
+                            x: this.gkStartX + diveDistance,
+                            y: this.gkStartY + diveHeight,
                             angle: 12,
                             duration: 250,
                             yoyo: true,
@@ -277,13 +290,13 @@ export class MainGame extends Scene {
                                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
                             }
                         });
-                    } else if (diffX < -50) {
+                    } else if (diffX < -threshold) {
                         // Dive Left (Frame 3 + position offset tween)
                         this.goalkeeper.setFrame(3);
                         this.tweens.add({
                             targets: this.goalkeeper,
-                            x: this.gkStartX - 80,
-                            y: this.gkStartY + 15,
+                            x: this.gkStartX - diveDistance,
+                            y: this.gkStartY + diveHeight,
                             angle: -12,
                             duration: 250,
                             yoyo: true,
@@ -298,7 +311,7 @@ export class MainGame extends Scene {
                         // Center block / jump (Frame 0 + vertical bounce)
                         this.tweens.add({
                             targets: this.goalkeeper,
-                            y: this.gkStartY - 60,
+                            y: this.gkStartY - jumpHeight,
                             duration: 180,
                             yoyo: true,
                             ease: 'Quad.easeOut',
@@ -311,12 +324,13 @@ export class MainGame extends Scene {
 
                     // Success visual effect (+1 text)
                     const plusText = this.add.text(football.x, football.y, '+1', {
-                        fontSize: '64px',
+                        fontSize: '36px',
+                        fontFamily: 'Nunito, sans-serif',
                         fontStyle: 'bold',
-                        color: '#10b981', // emerald-500
-                        stroke: '#ffffff',
-                        strokeThickness: 8,
-                        shadow: { blur: 15, color: '#000000', fill: true }
+                        color: '#FFF9C4',
+                        stroke: '#4E342E',
+                        strokeThickness: 6,
+                        shadow: { blur: 10, color: '#000000', fill: true }
                     }).setOrigin(0.5);
 
                     this.tweens.add({

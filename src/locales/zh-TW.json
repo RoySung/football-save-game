@@ -1,0 +1,26 @@
+{
+  "metaTitle": "Football Save ⚽",
+  "metaDesc": "Football Save - 點擊撲救飛來的足球！可愛卡通風格的手機足球小遊戲。",
+  "instructions": {
+    "part1": "點擊進入畫面的足球進行撲救！",
+    "part2": "必須等球飛入",
+    "bottomZone": "下方區域",
+    "part3": "才算成功。",
+    "part4": "若過早點擊則無效。",
+    "part5": "隨時間流逝，球速會越來越快！"
+  },
+  "startGame": "開始遊戲",
+  "timesUp": "時間到！",
+  "totalSaves": "總共撲救成功",
+  "restartGame": "再玩一次",
+  "feedback": {
+    "amazing": "太厲害了！",
+    "greatJob": "表現不錯！",
+    "keepTrying": "繼續加油！",
+    "tryAgain": "再試一次！"
+  },
+  "hud": {
+    "goal": "GOAL",
+    "time": "TIME"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "metaTitle": "Football Save ⚽",
+  "metaDesc": "Football Save - Tap to save the incoming footballs! A cute cartoon-style mobile football mini-game.",
+  "instructions": {
+    "part1": "Tap the incoming footballs to save them!",
+    "part2": "You must wait until the ball enters the ",
+    "bottomZone": "bottom zone",
+    "part3": " for a successful save.",
+    "part4": "Tapping too early will not count.",
+    "part5": "The ball speed increases over time!"
+  },
+  "startGame": "Start Game",
+  "timesUp": "Time's Up!",
+  "totalSaves": "Total Saves",
+  "restartGame": "Play Again",
+  "feedback": {
+    "amazing": "Amazing!",
+    "greatJob": "Great Job!",
+    "keepTrying": "Keep Trying!",
+    "tryAgain": "Try Again!"
+  },
+  "hud": {
+    "goal": "GOAL",
+    "time": "TIME"
+  }
+}

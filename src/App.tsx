@@ -1,11 +1,25 @@
 import { useState, useEffect } from 'react';
 import { PhaserGame } from './game/PhaserGame';
 import { EventBus } from './game/EventBus';
+import { useTranslation } from 'react-i18next';
+import { type Language } from './locales';
+import './App.css';
 
 function App() {
     const [score, setScore] = useState(0);
     const [timer, setTimer] = useState(30);
     const [gameState, setGameState] = useState<'start' | 'playing' | 'gameover'>('start');
+    const [scoreAnimKey, setScoreAnimKey] = useState(0);
+    const { t, i18n } = useTranslation();
+    const lang = i18n.language as Language;
+
+    useEffect(() => {
+        document.title = t('metaTitle');
+        const metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) {
+            metaDescription.setAttribute('content', t('metaDesc'));
+        }
+    }, [lang, t]);
 
     useEffect(() => {
         EventBus.on('game-started', () => {
@@ -14,6 +28,7 @@ function App() {
 
         EventBus.on('update-score', (newScore: number) => {
             setScore(newScore);
+            setScoreAnimKey(prev => prev + 1);
         });
 
         EventBus.on('update-timer', (newTime: number) => {
@@ -47,42 +62,87 @@ function App() {
         }, 100);
     };
 
+    const toggleLanguage = () => {
+        const nextLang = lang === 'en' ? 'zh-TW' : 'en';
+        i18n.changeLanguage(nextLang);
+        localStorage.setItem('game-lang', nextLang);
+    };
+
+    const getFeedbackMessage = () => {
+        if (score >= 15) return t('feedback.amazing');
+        if (score >= 10) return t('feedback.greatJob');
+        if (score >= 5) return t('feedback.keepTrying');
+        return t('feedback.tryAgain');
+    };
+
     return (
-        <div className="relative w-screen h-screen overflow-hidden bg-gray-950 font-sans touch-none select-none">
+        <div className="relative w-screen h-screen overflow-hidden font-sans touch-none select-none"
+             style={{ background: 'var(--color-bg)' }}>
             {/* Phaser Game Canvas */}
             <PhaserGame />
+
+            {/* Language Switcher */}
+            {gameState !== 'playing' && (
+                <div className="lang-toggle-container">
+                    <div 
+                        onClick={toggleLanguage}
+                        className="lang-toggle-pill"
+                    >
+                        <span className={`lang-item ${lang === 'zh-TW' ? 'active' : ''}`}>
+                            繁中
+                        </span>
+                        <span className={`lang-item ${lang === 'en' ? 'active' : ''}`}>
+                            EN
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* UI Overlay */}
             <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between">
                 
                 {/* HUD */}
                 {gameState === 'playing' && (
-                    <div className="p-4 flex justify-between items-start pt-safe w-full max-w-md mx-auto">
-                        <div className="bg-white/20 backdrop-blur-md px-4 sm:px-6 py-2 rounded-2xl text-white font-bold text-xl sm:text-2xl shadow-lg border border-white/30 flex items-center gap-2">
-                            <span>⚽</span> {score}
+                    <div className="p-4 flex justify-between items-start pt-safe w-full max-w-md mx-auto anim-slide-down">
+                        {/* Score Pill */}
+                        <div key={scoreAnimKey} className="hud-pill anim-score-pop">
+                            <span className="hud-label">{t('hud.goal')}</span> {score}
                         </div>
-                        <div className="bg-white/20 backdrop-blur-md px-4 sm:px-6 py-2 rounded-2xl text-white font-bold text-xl sm:text-2xl shadow-lg border border-white/30 flex items-center gap-2">
-                            <span>⏱️</span> 00:{timer.toString().padStart(2, '0')}
+                        {/* Timer Pill */}
+                        <div className={`hud-pill ${timer <= 10 ? 'hud-pill-warning' : ''}`}>
+                            <span className="hud-label">{t('hud.time')}</span> 00:{timer.toString().padStart(2, '0')}
                         </div>
                     </div>
                 )}
 
                 {/* Start Screen */}
                 {gameState === 'start' && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-auto">
-                        <div className="bg-white/10 p-8 rounded-3xl border border-white/20 flex flex-col items-center max-w-[90%] w-sm mx-4 text-center shadow-2xl">
-                            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 drop-shadow-md">Football Save</h1>
-                            <p className="text-gray-200 mb-8 leading-relaxed text-sm sm:text-base">
-                                點擊進入畫面的足球進行撲救！<br/><br/>
-                                必須等球飛入<span className="text-emerald-400 font-bold mx-1">下方區域</span>才算成功。<br/>
-                                若過早點擊則無效。<br/><br/>
-                                隨時間流逝，球速會越來越快！
-                            </p>
+                    <div className="absolute inset-0 flex items-center justify-center overlay-bright pointer-events-auto">
+                        <div className="game-card p-8 flex flex-col items-center max-w-[90%] w-sm mx-4 text-center anim-bounce-in">
+                            {/* Logo */}
+                            <img 
+                                src="/assets/logo.png" 
+                                alt="Football Save" 
+                                className="game-logo mb-4 anim-float"
+                            />
+                            
+                            {/* Instructions */}
+                            <div className="info-bubble mb-6 text-left">
+                                <p className="leading-relaxed text-sm sm:text-base" style={{ color: 'var(--color-text)' }}>
+                                    {t('instructions.part1')}<br/><br/>
+                                    {t('instructions.part2')}<span className="text-accent-green mx-1">{t('instructions.bottomZone')}</span>{t('instructions.part3')}<br/>
+                                    {t('instructions.part4')}<br/><br/>
+                                    {t('instructions.part5')}
+                                </p>
+                            </div>
+
+                            {/* Start Button */}
                             <button 
                                 onClick={startGame}
-                                className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-4 px-12 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] transform transition hover:scale-105 active:scale-95 text-xl w-full"
+                                className="game-btn game-btn-primary py-4 px-12 text-xl w-full anim-float"
+                                style={{ animationDelay: '0.3s' }}
                             >
-                                開始遊戲
+                                {t('startGame')}
                             </button>
                         </div>
                     </div>
@@ -90,26 +150,44 @@ function App() {
 
                 {/* Game Over Screen */}
                 {gameState === 'gameover' && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md pointer-events-auto">
-                        <div className="bg-white/10 p-8 rounded-3xl border border-white/20 flex flex-col items-center max-w-[90%] w-sm mx-4 text-center shadow-2xl animate-[fadeIn_0.5s_ease-out]">
-                            <h2 className="text-3xl font-bold text-white mb-2">時間到！</h2>
-                            <p className="text-gray-300 mb-4">總共撲救成功</p>
-                            <div className="text-6xl font-black text-emerald-400 mb-8 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]">
-                                {score} <span className="text-2xl text-white font-bold">球</span>
+                    <div className="absolute inset-0 flex items-center justify-center overlay-celebration pointer-events-auto">
+                        <div className="game-card p-8 flex flex-col items-center max-w-[90%] w-sm mx-4 text-center anim-bounce-in">
+                            {/* Title */}
+                            <h2 className="game-title text-3xl mb-2">
+                                {t('timesUp')}
+                            </h2>
+                            
+                            <p className="mb-4 font-semibold" style={{ color: 'var(--color-text-light)' }}>
+                                {t('totalSaves')}
+                            </p>
+
+                            {/* Score Display */}
+                            <div className="flex items-center gap-3 mb-8">
+                                <span className="star-decoration text-3xl anim-pulse">★</span>
+                                <span className="score-display text-7xl">{score}</span>
+                                <span className="star-decoration text-3xl anim-pulse" style={{ animationDelay: '0.5s' }}>★</span>
                             </div>
+
+                            <p className="text-lg font-bold mb-6" style={{ color: 'var(--color-text)' }}>
+                                {getFeedbackMessage()}
+                            </p>
+
+                            {/* Restart Button */}
                             <button 
                                 onClick={restartGame}
-                                className="bg-white/20 hover:bg-white/30 border border-white/40 text-white font-bold py-4 px-10 rounded-full shadow-lg transition transform hover:scale-105 active:scale-95 w-full text-lg"
+                                className="game-btn game-btn-secondary py-4 px-10 w-full text-lg anim-float"
+                                style={{ animationDelay: '0.5s' }}
                             >
-                                再玩一次
+                                {t('restartGame')}
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-            {/* Guide line for Save Zone (Optional, for better UX) */}
+
+            {/* Guide line for Save Zone */}
             {gameState === 'playing' && (
-                <div className="absolute bottom-[50%] w-full border-t-2 border-emerald-500/30 border-dashed pointer-events-none shadow-[0_-2px_10px_rgba(16,185,129,0.1)]"></div>
+                <div className="absolute bottom-[50%] w-full save-zone-guide pointer-events-none"></div>
             )}
         </div>
     );

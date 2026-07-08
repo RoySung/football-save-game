@@ -1,0 +1,71 @@
+/* ============================================
+   Football Save — Design System Tokens
+   卡通可愛風格設計系統
+   ============================================ */
+
+:root {
+  /* === 色彩系統 (Pastel Cartoon Palette) === */
+
+  /* Primary: 天空藍 */
+  --color-primary: #4FC3F7;
+  --color-primary-dark: #0288D1;
+  --color-primary-light: #B3E5FC;
+
+  /* Secondary: 草地綠 */
+  --color-secondary: #81C784;
+  --color-secondary-dark: #388E3C;
+  --color-secondary-light: #C8E6C9;
+
+  /* Accent: 暖陽橘黃 */
+  --color-accent: #FFB74D;
+  --color-accent-dark: #F57C00;
+  --color-accent-light: #FFE0B2;
+
+  /* Highlight: 粉色 */
+  --color-highlight: #F48FB1;
+  --color-highlight-dark: #C2185B;
+
+  /* Neutral */
+  --color-bg: #E8F5FD;
+  --color-surface: #FFFFFF;
+  --color-text: #4E342E;
+  --color-text-light: #8D6E63;
+  --color-text-white: #FFFFFF;
+
+  /* 特效色 */
+  --color-score: #FFD700;
+  --color-danger: #EF5350;
+  --color-success: #66BB6A;
+
+  /* === 字體 === */
+  --font-display: 'Nunito', 'M PLUS Rounded 1c', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+
+  /* === 圓角 === */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* === 陰影（柔和卡通陰影） === */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --shadow-glow-gold: 0 0 24px rgba(255, 215, 0, 0.5);
+  --shadow-glow-accent: 0 0 20px rgba(255, 183, 77, 0.4);
+  --shadow-cartoon: 0 6px 0 rgba(0, 0, 0, 0.15);
+
+  /* === 描邊 === */
+  --stroke-width: 3px;
+  --stroke-color: #4E342E;
+  --stroke-color-light: #8D6E63;
+
+  /* === 間距 === */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+}
