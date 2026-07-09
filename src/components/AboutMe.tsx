@@ -6,7 +6,7 @@ export function AboutMe() {
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close when clicking outside
+  // Close when clicking outside and handle Escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -16,9 +16,23 @@ export function AboutMe() {
         setIsExpanded(false);
       }
     }
+
+    function handleGlobalKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsExpanded(false);
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (isExpanded) {
+      document.addEventListener("keydown", handleGlobalKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [isExpanded]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!isExpanded && (event.key === "Enter" || event.key === " ")) {
@@ -58,7 +72,7 @@ export function AboutMe() {
       {/* Expanded Content */}
       <div
         className={`flex items-center transition-all duration-300 overflow-hidden ${
-          isExpanded ? "opacity-100 w-full" : "w-0 opacity-0"
+          isExpanded ? "opacity-100 w-full visible" : "w-0 opacity-0 invisible"
         }`}
       >
         {/* Avatar (inside expanded content) */}
