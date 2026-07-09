@@ -3,40 +3,53 @@
    卡通可愛風格設計系統
    ============================================ */
 
-:root {
-  /* === 色彩系統 (Pastel Cartoon Palette) === */
+/* === 色彩系統 (Tailwind v4 @theme — generates utility classes) === */
+@theme {
+  /* Page Background: 溫暖明黃色 */
+  --color-bg: #FEDB41;
+  --color-surface: #FFFDF9;
 
-  /* Primary: 天空藍 */
-  --color-primary: #4FC3F7;
-  --color-primary-dark: #0288D1;
-  --color-primary-light: #B3E5FC;
+  /* Primary: 活潑青藍色 (用於按鈕、吊帶) */
+  --color-primary: #00C2E8;
+  --color-primary-dark: #009EBF;
+  --color-primary-darker: #008EA6;
+  --color-primary-light: #CBEFF7;
 
-  /* Secondary: 草地綠 */
-  --color-secondary: #81C784;
-  --color-secondary-dark: #388E3C;
-  --color-secondary-light: #C8E6C9;
+  /* Secondary: 亮草綠色 (用於狀態藥丸、貼紙) */
+  --color-secondary: #8CD600;
+  --color-secondary-dark: #6FA600;
+  --color-secondary-light: #E2F5C5;
 
-  /* Accent: 暖陽橘黃 */
-  --color-accent: #FFB74D;
-  --color-accent-dark: #F57C00;
-  --color-accent-light: #FFE0B2;
+  /* Accent: 珊瑚紅 (用於主標題、歷史最高徽章) */
+  --color-accent: #FF6B6B;
+  --color-accent-dark: #E05353;
+  --color-accent-light: #FFECEC;
 
-  /* Highlight: 粉色 */
-  --color-highlight: #F48FB1;
-  --color-highlight-dark: #C2185B;
+  /* Highlight: 暖陽金黃 (用於星級、高亮) */
+  --color-highlight: #FFD600;
+  --color-highlight-dark: #E0BC00;
 
-  /* Neutral */
-  --color-bg: #E8F5FD;
-  --color-surface: #FFFFFF;
+  /* Leaderboard Tab: 粉紫色 */
+  --color-purple: #B794F4;
+  --color-purple-dark: #9F7AEA;
+
+  /* Neutral & Text */
   --color-text: #4E342E;
-  --color-text-light: #8D6E63;
+  --color-text-light: #7E655F;
   --color-text-white: #FFFFFF;
+  --color-score-bg: #F2EEE5;
 
   /* 特效色 */
-  --color-score: #FFD700;
+  --color-score: #FFD600;
   --color-danger: #EF5350;
   --color-success: #66BB6A;
 
+  /* 3D 陰影色 */
+  --color-shadow-olive: #D3C8B4;
+}
+
+/* === 非色彩 tokens (consumed via var() in CSS) === */
+:root {
   /* === 字體 === */
   --font-display: 'Nunito', 'M PLUS Rounded 1c', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, sans-serif;
@@ -68,4 +81,8 @@
   --space-lg: 24px;
   --space-xl: 32px;
   --space-2xl: 48px;
+
+  /* === 撲球區域色彩 === */
+  --color-save-zone: #ffd700;
+  --color-save-zone-pulse: #ff9800;
 }

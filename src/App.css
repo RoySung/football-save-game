@@ -10,9 +10,9 @@
   color: var(--color-score);
   text-shadow:
     -2px -2px 0 var(--stroke-color),
-     2px -2px 0 var(--stroke-color),
-    -2px  2px 0 var(--stroke-color),
-     2px  2px 0 var(--stroke-color),
+    2px -2px 0 var(--stroke-color),
+    -2px 2px 0 var(--stroke-color),
+    2px 2px 0 var(--stroke-color),
     0 4px 8px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.02em;
 }
@@ -20,59 +20,315 @@
 /* === 遊戲按鈕（通用） === */
 .game-btn {
   font-family: var(--font-display);
-  font-weight: 800;
-  border: var(--stroke-width) solid var(--stroke-color);
+  font-weight: 900;
+  border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
   position: relative;
-  text-shadow:
-    -1px -1px 0 rgba(0,0,0,0.15),
-     1px  1px 0 rgba(255,255,255,0.3);
-  box-shadow: var(--shadow-cartoon);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 0 var(--color-primary-dark);
 }
 
 .game-btn:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 0 var(--color-primary-dark);
 }
 
 .game-btn:active {
-  transform: translateY(3px) scale(0.97);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 var(--color-primary-dark);
 }
 
-/* Primary button (orange-yellow gradient) */
+/* Primary button (sky-blue 3D) */
 .game-btn-primary {
-  background: linear-gradient(180deg, #FFD54F 0%, #FFB74D 50%, #FFA726 100%);
-  color: var(--color-text);
+  background: var(--color-primary);
+  color: var(--color-text-white);
+  box-shadow: 0 8px 0 var(--color-primary-dark);
 }
 
-/* Secondary button (sky-blue gradient) */
+.game-btn-primary:hover {
+  box-shadow: 0 10px 0 var(--color-primary-dark);
+}
+
+.game-btn-primary:active {
+  box-shadow: 0 2px 0 var(--color-primary-dark);
+}
+
+/* Secondary button (green 3D) */
 .game-btn-secondary {
-  background: linear-gradient(180deg, #81D4FA 0%, #4FC3F7 50%, #29B6F6 100%);
-  color: var(--color-text-white);
+  background: var(--color-secondary);
+  color: var(--color-text);
+  box-shadow: 0 8px 0 var(--color-secondary-dark);
+}
+
+.game-btn-secondary:hover {
+  box-shadow: 0 10px 0 var(--color-secondary-dark);
+}
+
+.game-btn-secondary:active {
+  box-shadow: 0 2px 0 var(--color-secondary-dark);
 }
 
 /* === 遊戲卡片/面板 === */
 .game-card {
   background: var(--color-surface);
-  border: var(--stroke-width) solid var(--stroke-color);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg), var(--shadow-cartoon);
+  border: none;
+  border-radius: 40px;
+  box-shadow: 0 16px 0 var(--color-shadow-olive);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* 允許標籤、按鈕超出邊界 */
 }
 
-.game-card::before {
-  content: '';
+/* 頂部紅標籤 */
+.badge-new-best {
   position: absolute;
-  top: 0;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #ff8a8a 0%, var(--color-accent) 100%);
+  color: var(--color-text-white);
+  padding: 6px 24px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 0 var(--color-accent-dark);
+  z-index: 10;
+  text-transform: uppercase;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+}
+
+/* 頂部懸掛藍絲帶 */
+.lvl-ribbon {
+  position: absolute;
+  top: 12px; /* 往下移避免被紅色標籤完全遮擋 */
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: var(--color-text-white);
+  padding: 10px 14px 12px 14px;
+  border-radius: 0 0 16px 16px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 0 var(--color-primary-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 80px;
+  z-index: 9;
+}
+
+.lvl-ribbon-star {
+  font-size: 1.25rem;
+  color: var(--color-highlight);
+  line-height: 1;
+}
+
+/* 泡泡糖標題 */
+.game-title-cartoon {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--color-accent);
+  text-shadow:
+    -2px -2px 0 var(--color-accent-light),
+    2px -2px 0 var(--color-accent-light),
+    -2px 2px 0 var(--color-accent-light),
+    2px 2px 0 var(--color-accent-light),
+    0 5px 0 var(--color-accent-dark);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-top: 32px; /* 已移除 ribbon，縮小上邊距 */
+  margin-bottom: 8px;
+}
+
+/* 灰色得分框 */
+.score-box {
+  background-color: var(--color-score-bg);
+  border-radius: 28px;
+  padding: 14px 24px;
+  width: 85%;
+  margin: 12px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.06);
+}
+
+.score-box-value {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.score-box-best {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 綠色藥丸裝飾 */
+.score-pill-green {
+  background: var(--color-secondary);
+  color: var(--color-text);
+  padding: 8px 24px;
+  font-size: 1rem;
+  font-weight: 900;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 0 var(--color-secondary-dark);
+  text-transform: uppercase;
+  margin: 8px auto 14px auto;
+  width: 85%;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+/* 分享按鈕與貼紙 */
+.btn-share-container {
+  position: relative;
+  width: 85%;
+  margin: 12px auto;
+}
+
+.btn-share {
+  width: 100%;
+  background: var(--color-primary);
+  color: var(--color-text-white);
+  padding: 14px 24px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 0 var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+  text-transform: uppercase;
+}
+
+.btn-share:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 var(--color-primary-dark);
+}
+
+.btn-share:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--color-primary-dark);
+}
+
+.badge-sticker {
+  position: absolute;
+  right: -10px;
+  top: -16px;
+  width: 56px;
+  height: 56px;
+  background: var(--color-secondary);
+  border-radius: 50%;
+  box-shadow:
+    0 4px 0 var(--color-secondary-dark),
+    0 4px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-white);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  transform: rotate(12deg);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* 底部浮動按鈕區 */
+.footer-btn-container {
+  position: absolute;
+  bottom: -32px;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent), var(--color-highlight));
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.btn-round-cyan {
+  width: 64px;
+  height: 64px;
+  background: var(--color-primary);
+  border-radius: 22px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-white);
+  box-shadow: 0 6px 0 var(--color-primary-darker);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.btn-round-cyan:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 var(--color-primary-darker);
+}
+
+.btn-round-cyan:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--color-primary-darker);
+}
+
+.btn-round-cyan svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0.5px;
+}
+
+/* 左下角排行榜標籤 */
+.leaderboard-tab {
+  position: absolute;
+  bottom: -12px;
+  left: 12px;
+  background: var(--color-purple);
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 var(--color-purple-dark);
+  color: var(--color-text-white);
+  z-index: 10;
+  transform: rotate(-10deg);
+}
+
+.leaderboard-tab svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
 }
 
 /* === HUD 藥丸型元素 === */
@@ -82,7 +338,9 @@
   background: var(--color-surface);
   border: var(--stroke-width) solid var(--stroke-color);
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-md), 0 3px 0 rgba(0,0,0,0.12);
+  box-shadow:
+    var(--shadow-md),
+    0 3px 0 rgba(0, 0, 0, 0.12);
   color: var(--color-text);
   display: flex;
   align-items: center;
@@ -148,6 +406,67 @@
   width: 80%;
   height: auto;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-logo:not(.logo-shocked):not(.logo-angry):hover {
+  animation: logo-hover-sway 0.8s ease-in-out infinite;
+}
+
+.game-logo:active {
+  transform: scale(0.95);
+}
+
+/* When logo is in shocked state, we apply a rapid shaking/vibrating animation */
+.logo-shocked {
+  animation: logo-shock-shake 0.15s infinite linear;
+}
+
+/* When logo is in angry state, we apply an intense shaking/vibrating animation with red glow */
+.logo-angry {
+  animation: logo-angry-shake 0.08s infinite linear;
+  filter: drop-shadow(0 0 15px rgba(255, 68, 68, 0.75)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes logo-hover-sway {
+  0%, 100% {
+    transform: rotate(0deg) scale(1.05);
+  }
+  25% {
+    transform: rotate(-4deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(4deg) scale(1.05);
+  }
+}
+
+@keyframes logo-shock-shake {
+  0% { transform: translate(1px, 1px) rotate(0deg) scale(1.08); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg) scale(1.08); }
+  20% { transform: translate(-3px, 0px) rotate(1deg) scale(1.08); }
+  30% { transform: translate(0px, 2px) rotate(0deg) scale(1.08); }
+  40% { transform: translate(1px, -1px) rotate(1deg) scale(1.08); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg) scale(1.08); }
+  60% { transform: translate(-3px, 1px) rotate(0deg) scale(1.08); }
+  70% { transform: translate(2px, 1px) rotate(-1deg) scale(1.08); }
+  80% { transform: translate(-1px, -1px) rotate(1deg) scale(1.08); }
+  90% { transform: translate(2px, 2px) rotate(0deg) scale(1.08); }
+  100% { transform: translate(1px, -2px) rotate(-1deg) scale(1.08); }
+}
+
+@keyframes logo-angry-shake {
+  0% { transform: translate(2px, 2px) rotate(0deg) scale(1.1); }
+  10% { transform: translate(-2px, -3px) rotate(-1.5deg) scale(1.1); }
+  20% { transform: translate(-4px, 0px) rotate(1.5deg) scale(1.1); }
+  30% { transform: translate(0px, 3px) rotate(0deg) scale(1.1); }
+  40% { transform: translate(2px, -2px) rotate(1.5deg) scale(1.1); }
+  50% { transform: translate(-2px, 3px) rotate(-1.5deg) scale(1.1); }
+  60% { transform: translate(-4px, 2px) rotate(0deg) scale(1.1); }
+  70% { transform: translate(3px, 2px) rotate(-1.5deg) scale(1.1); }
+  80% { transform: translate(-2px, -2px) rotate(1.5deg) scale(1.1); }
+  90% { transform: translate(3px, 3px) rotate(0deg) scale(1.1); }
+  100% { transform: translate(2px, -3px) rotate(-1.5deg) scale(1.1); }
 }
 
 /* === 分數展示（Game Over 畫面）=== */
@@ -157,9 +476,9 @@
   color: var(--color-score);
   text-shadow:
     -3px -3px 0 var(--stroke-color),
-     3px -3px 0 var(--stroke-color),
-    -3px  3px 0 var(--stroke-color),
-     3px  3px 0 var(--stroke-color),
+    3px -3px 0 var(--stroke-color),
+    -3px 3px 0 var(--stroke-color),
+    3px 3px 0 var(--stroke-color),
     0 0 20px rgba(255, 215, 0, 0.4);
 }
 
@@ -172,35 +491,168 @@
 /* === Overlay 背景 === */
 .overlay-bright {
   background: linear-gradient(
-    180deg,
-    rgba(79, 195, 247, 0.85) 0%,
-    rgba(129, 199, 132, 0.80) 50%,
-    rgba(255, 183, 77, 0.75) 100%
+    135deg,
+    rgba(254, 219, 65, 0.45) 0%,
+    rgba(0, 194, 232, 0.35) 50%,
+    rgba(254, 219, 65, 0.45) 100%
   );
+  background-size: 200% 200%;
+  animation: gradient-flow 8s ease infinite;
   backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.overlay-bright::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg); /* 初始純黃色 */
+  z-index: -1;
+  animation: overlay-yellow-fade 2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+@keyframes overlay-yellow-fade {
+  0% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .overlay-celebration {
   background: linear-gradient(
     180deg,
     rgba(255, 248, 225, 0.92) 0%,
-    rgba(255, 224, 178, 0.90) 50%,
+    rgba(255, 224, 178, 0.9) 50%,
     rgba(244, 143, 177, 0.85) 100%
   );
   backdrop-filter: blur(6px);
 }
 
-/* === 引導線（撲球區域標示）=== */
-.save-zone-guide {
-  border-top: 3px dashed var(--color-accent);
-  opacity: 0.5;
-  box-shadow: 0 -2px 10px rgba(255, 183, 77, 0.15);
+/* === 撲球區域標示（虛線框與標籤）=== */
+.save-zone-container {
+  position: absolute;
+  bottom: 12px; /* Inset from the bottom edge so the bottom border is visible */
+  left: 12px;
+  right: 12px;
+  height: 38%; /* Reduced from 50% to be further away from the kicker */
+  box-sizing: border-box;
+  z-index: 5; /* Ensure it's above Phaser Canvas but below standard UI components */
 }
 
-/* === 強調文字 === */
-.text-accent-green {
-  color: var(--color-secondary-dark);
-  font-weight: 800;
+.save-zone-guide {
+  width: 100%;
+  height: 100%;
+  border: 6px dashed var(--color-save-zone);
+  border-radius: var(--radius-lg); /* Rounded on all four sides */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 215, 0, 0.14) 0%,
+    rgba(255, 215, 0, 0.02) 100%
+  );
+  opacity: 1; /* High visibility during countdown */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  /* Strong dark border contours for maximum contrast on light and dark background elements */
+  filter: drop-shadow(0 0 3px var(--stroke-color))
+    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  animation: pulse-border 2s infinite ease-in-out;
+}
+
+.save-zone-label {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.85rem;
+  color: var(--stroke-color);
+  background: var(--color-save-zone);
+  border: 3px solid var(--stroke-color); /* Thicker border */
+  border-radius: var(--radius-full);
+  padding: 6px 16px;
+  margin-top: -20px; /* Offset to sit centered on the 6px dashed border */
+  box-shadow: 0 4px 0 var(--stroke-color); /* Cartoon 3D shadow */
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px var(--stroke-color))
+      drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 215, 0, 0.1) 0%,
+      rgba(255, 215, 0, 0.02) 100%
+    );
+    border-color: var(--color-save-zone);
+  }
+  50% {
+    filter: drop-shadow(0 0 4px var(--stroke-color))
+      drop-shadow(0 4px 10px rgba(255, 215, 0, 0.45));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 215, 0, 0.18) 0%,
+      rgba(255, 215, 0, 0.03) 100%
+    );
+    border-color: var(--color-save-zone-pulse);
+  }
+}
+
+/* === 倒數計時數字樣式 === */
+.countdown-number {
+  font-family: var(--font-display);
+  font-size: 8rem;
+  font-weight: 900;
+  color: var(--color-accent);
+  text-shadow:
+    -4px -4px 0 var(--stroke-color),
+    4px -4px 0 var(--stroke-color),
+    -4px 4px 0 var(--stroke-color),
+    4px 4px 0 var(--stroke-color),
+    0 8px 0 rgba(0, 0, 0, 0.25);
+  transform-origin: center;
+}
+
+.anim-countdown-pop {
+  animation: countdown-pop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+
+@keyframes countdown-pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
 }
 
 /* === 語言切換按鈕 (方案 B: 雙語並存 Pill) === */
@@ -220,7 +672,9 @@
   border-radius: var(--radius-full);
   padding: 3px;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
   cursor: pointer;
   user-select: none;
 }
@@ -247,7 +701,7 @@
 }
 
 .lang-item.active {
-  background: linear-gradient(180deg, #81D4FA 0%, #4FC3F7 50%, #29B6F6 100%);
+  background: linear-gradient(180deg, #81d4fa 0%, #4fc3f7 50%, #29b6f6 100%);
   color: var(--color-text-white);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.1);

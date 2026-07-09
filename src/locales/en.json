@@ -13,6 +13,11 @@
   "timesUp": "Time's Up!",
   "totalSaves": "Total Saves",
   "restartGame": "Play Again",
+  "newBest": "New Best",
+  "gameSummaryDesc": "You beat the best save challenge!",
+  "savesEarned": "YOU SAVED {{count}} BALLS!",
+  "shareScore": "SHARE",
+  "backToMenu": "Back to Menu",
   "feedback": {
     "amazing": "Amazing!",
     "greatJob": "Great Job!",
@@ -21,6 +26,8 @@
   },
   "hud": {
     "goal": "GOAL",
-    "time": "TIME"
+    "time": "TIME",
+    "saveZone": "SAVE ZONE",
+    "best": "BEST"
   }
 }

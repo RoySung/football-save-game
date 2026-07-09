@@ -13,6 +13,11 @@
   "timesUp": "時間到！",
   "totalSaves": "總共撲救成功",
   "restartGame": "再玩一次",
+  "newBest": "新紀錄",
+  "gameSummaryDesc": "你成功挑戰了撲救極限！",
+  "savesEarned": "你成功撲救了 {{count}} 球！",
+  "shareScore": "分享分數",
+  "backToMenu": "返回主選單",
   "feedback": {
     "amazing": "太厲害了！",
     "greatJob": "表現不錯！",
@@ -21,6 +26,8 @@
   },
   "hud": {
     "goal": "GOAL",
-    "time": "TIME"
+    "time": "TIME",
+    "saveZone": "撲救區域",
+    "best": "最高紀錄"
   }
 }
