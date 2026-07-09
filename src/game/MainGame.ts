@@ -1,10 +1,11 @@
 import * as Phaser from "phaser";
 import { Scene, Math as PhaserMath, Curves } from "phaser";
 import { EventBus } from "./EventBus";
+import { GAME_CONSTANTS } from "../constants";
 
 export class MainGame extends Scene {
   private score: number = 0;
-  private timer: number = 30;
+  private timer: number = GAME_CONSTANTS.DURATION;
   private timerEvent?: Phaser.Time.TimerEvent;
   private spawnEvent?: Phaser.Time.TimerEvent;
   private isGameOver: boolean = false;
@@ -15,7 +16,7 @@ export class MainGame extends Scene {
   private fixedStartY!: number;
   private gkStartX!: number;
   private gkStartY!: number;
-  private baseSpawnDelay: number = 2000;
+  private baseSpawnDelay: number = GAME_CONSTANTS.BASE_SPAWN_DELAY;
   private saveZoneYMin!: number;
   private isGameStarted: boolean = false;
 
@@ -25,7 +26,7 @@ export class MainGame extends Scene {
 
   create() {
     this.score = 0;
-    this.timer = 30;
+    this.timer = GAME_CONSTANTS.DURATION;
     this.isGameOver = false;
     this.isGameStarted = false;
 
@@ -126,8 +127,8 @@ export class MainGame extends Scene {
     this.gkStartY = this.goalkeeper.y;
 
     // Save Zone is the bottom 38% of the screen with 12px padding (縮小區域避開射門員，對齊視覺框線)
-    const saveZonePercent = 0.38;
-    const bottomPadding = 12;
+    const saveZonePercent = GAME_CONSTANTS.SAVE_ZONE_HEIGHT_PERCENT;
+    const bottomPadding = GAME_CONSTANTS.SAVE_ZONE_BOTTOM_PADDING;
     this.saveZoneYMin = height * (1 - saveZonePercent) - bottomPadding;
   }
 
@@ -168,8 +169,8 @@ export class MainGame extends Scene {
     if (this.isGameOver) return;
 
     // Difficulty scaling: spawn delay decreases as time runs out
-    const progress = 1 - this.timer / 30;
-    const currentDelay = this.baseSpawnDelay * (1 - progress * 0.6); // 2000ms -> 800ms
+    const progress = 1 - this.timer / GAME_CONSTANTS.DURATION;
+    const currentDelay = this.baseSpawnDelay * (1 - progress * GAME_CONSTANTS.SPAWN_MIN_DELAY_FACTOR); // 2000ms -> 800ms
 
     this.spawnEvent = this.time.delayedCall(currentDelay, () => {
       this.spawnFootball();
@@ -193,7 +194,7 @@ export class MainGame extends Scene {
     }
 
     // Delay ball spawning by 150ms to align with physical kick contact frame
-    this.time.delayedCall(150, () => {
+    this.time.delayedCall(GAME_CONSTANTS.BALL_SPAWN_DELAY_OFFSET, () => {
       if (this.isGameOver) return;
 
       const startX = this.fixedStartX;
@@ -215,26 +216,26 @@ export class MainGame extends Scene {
       );
 
       const football = this.add.sprite(startX, startY, "football");
-      football.setScale(0.035); // Very small at start (0.05 * 0.7)
+      football.setScale(GAME_CONSTANTS.BALL_MIN_SCALE); // Very small at start (0.05 * 0.7)
       football.setInteractive({ useHandCursor: true });
 
       // Hitbox padding for mobile (放寬為寬度的 1.5 倍以降低點擊難度)
       const hitArea = new Phaser.Geom.Circle(
         football.width / 2,
         football.height / 2,
-        football.width * 0.75,
+        football.width * GAME_CONSTANTS.BALL_HITBOX_SCALE,
       );
       football.setInteractive(hitArea, Phaser.Geom.Circle.Contains);
 
-      const progress = 1 - this.timer / 30;
-      const duration = 2000 - progress * 1000; // 2000ms -> 1000ms speed
+      const progress = 1 - this.timer / GAME_CONSTANTS.DURATION;
+      const duration = GAME_CONSTANTS.BALL_BASE_DURATION - progress * (GAME_CONSTANTS.BALL_BASE_DURATION * GAME_CONSTANTS.BALL_MIN_DURATION_FACTOR); // 2000ms -> 1000ms speed
 
       const isLandscape = width > height;
       const bgScale = Math.max(width / this.bg.width, height / this.bg.height);
       const maxScale = isLandscape
-        ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * 0.18)
-        : bgScale * 0.18;
-      const minScale = 0.035;
+        ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR)
+        : bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR;
+      const minScale = GAME_CONSTANTS.BALL_MIN_SCALE;
 
       const tween = this.tweens.add({
         targets: football,
@@ -283,10 +284,10 @@ export class MainGame extends Scene {
           this.goalkeeper.setFrame(0);
 
           const gkScale = this.goalkeeper.scale;
-          const threshold = 220 * gkScale;
-          const diveDistance = 360 * gkScale;
-          const diveHeight = 70 * gkScale;
-          const jumpHeight = 270 * gkScale;
+          const threshold = GAME_CONSTANTS.GK_DIVE_THRESHOLD * gkScale;
+          const diveDistance = GAME_CONSTANTS.GK_DIVE_DISTANCE * gkScale;
+          const diveHeight = GAME_CONSTANTS.GK_DIVE_HEIGHT_OFFSET * gkScale;
+          const jumpHeight = GAME_CONSTANTS.GK_JUMP_HEIGHT * gkScale;
 
           if (diffX > threshold) {
             // Dive Right (Frame 1 + position offset tween)
@@ -296,9 +297,9 @@ export class MainGame extends Scene {
               x: this.gkStartX + diveDistance,
               y: this.gkStartY + diveHeight,
               angle: 12,
-              duration: 250,
+              duration: GAME_CONSTANTS.GK_DIVE_DURATION,
               yoyo: true,
-              hold: 80,
+              hold: GAME_CONSTANTS.GK_DIVE_HOLD,
               onComplete: () => {
                 this.goalkeeper.setFrame(0);
                 this.goalkeeper.setAngle(0);
@@ -313,9 +314,9 @@ export class MainGame extends Scene {
               x: this.gkStartX - diveDistance,
               y: this.gkStartY + diveHeight,
               angle: -12,
-              duration: 250,
+              duration: GAME_CONSTANTS.GK_DIVE_DURATION,
               yoyo: true,
-              hold: 80,
+              hold: GAME_CONSTANTS.GK_DIVE_HOLD,
               onComplete: () => {
                 this.goalkeeper.setFrame(0);
                 this.goalkeeper.setAngle(0);
@@ -327,7 +328,7 @@ export class MainGame extends Scene {
             this.tweens.add({
               targets: this.goalkeeper,
               y: this.gkStartY - jumpHeight,
-              duration: 180,
+              duration: GAME_CONSTANTS.GK_JUMP_DURATION,
               yoyo: true,
               ease: "Quad.easeOut",
               onComplete: () => {
@@ -340,21 +341,21 @@ export class MainGame extends Scene {
           // Success visual effect (+1 text)
           const plusText = this.add
             .text(football.x, football.y, "+1", {
-              fontSize: "36px",
+              fontSize: GAME_CONSTANTS.SCORE_EFFECT_FONT_SIZE,
               fontFamily: "Nunito, sans-serif",
               fontStyle: "bold",
-              color: "#FFF9C4",
-              stroke: "#4E342E",
-              strokeThickness: 6,
+              color: GAME_CONSTANTS.SCORE_EFFECT_FONT_COLOR,
+              stroke: GAME_CONSTANTS.SCORE_EFFECT_STROKE_COLOR,
+              strokeThickness: GAME_CONSTANTS.SCORE_EFFECT_STROKE_THICKNESS,
               shadow: { blur: 10, color: "#000000", fill: true },
             })
             .setOrigin(0.5);
 
           this.tweens.add({
             targets: plusText,
-            y: plusText.y - 120,
+            y: plusText.y - GAME_CONSTANTS.SCORE_EFFECT_FLOAT_DISTANCE,
             alpha: 0,
-            duration: 800,
+            duration: GAME_CONSTANTS.SCORE_EFFECT_DURATION,
             ease: "Cubic.easeOut",
             onComplete: () => plusText.destroy(),
           });

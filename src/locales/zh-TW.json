@@ -29,5 +29,22 @@
     "time": "TIME",
     "saveZone": "撲救區域",
     "best": "最高紀錄"
+  },
+  "leaderboard": {
+    "title": "排行榜",
+    "enterName": "輸入你的暱稱",
+    "submit": "送出分數",
+    "rank": "名次",
+    "player": "玩家",
+    "score": "分數",
+    "you": "你",
+    "notQualified": "分數未達排行榜門檻",
+    "loading": "載入中...",
+    "error": "排行榜載入失敗",
+    "defaultName": "玩家名",
+    "nicknamePlaceholder": "輸入名字 (最多 12 字)",
+    "submitting": "送出中...",
+    "qualificationRequired": "輸入名字以傳送分數！",
+    "notConfigured": "排行榜未啟用（請配置 .env）"
   }
 }

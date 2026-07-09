@@ -3,16 +3,21 @@ import { PhaserGame } from "./game/PhaserGame";
 import { EventBus } from "./game/EventBus";
 import { useTranslation } from "react-i18next";
 import { type Language } from "./locales";
+import { qualifiesForLeaderboard, submitScore, fetchLeaderboard, type LeaderboardEntry } from "./leaderboard";
+import { isFirebaseConfigured } from "./firebase";
+import { StartScreen } from "./components/StartScreen";
+import { GameOverScreen } from "./components/GameOverScreen";
+import { GAME_CONSTANTS } from "./constants";
 import "./App.css";
 
 function App() {
   const [score, setScore] = useState(0);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState<number>(GAME_CONSTANTS.DURATION);
   const [gameState, setGameState] = useState<
     "start" | "countdown" | "playing" | "gameover"
   >("start");
   const [scoreAnimKey, setScoreAnimKey] = useState(0);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState<number>(GAME_CONSTANTS.COUNTDOWN_DURATION);
   const [bestScore, setBestScore] = useState<number>(() => {
     const saved = localStorage.getItem("game-best-score");
     return saved ? parseInt(saved, 10) : 0;
@@ -26,6 +31,18 @@ function App() {
   const [logoState, setLogoState] = useState<"normal" | "shocked" | "angry">("normal");
   const [logoClickCount, setLogoClickCount] = useState(0);
   const logoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [nickname, setNickname] = useState(() => {
+    return localStorage.getItem("game-nickname") || "";
+  });
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
+  const [isQualify, setIsQualify] = useState(true);
+  const [submittingScore, setSubmittingScore] = useState(false);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [viewState, setViewState] = useState<"summary" | "leaderboard">("summary");
+  const [showLeaderboardFromStart, setShowLeaderboardFromStart] = useState(false);
 
   useEffect(() => {
     document.title = t("metaTitle");
@@ -51,6 +68,9 @@ function App() {
 
     EventBus.on("game-over", (finalScore: number) => {
       setGameState("gameover");
+      setViewState("summary");
+      setScoreSubmitted(false);
+      
       const savedBest = localStorage.getItem("game-best-score");
       const currentBest = savedBest ? parseInt(savedBest, 10) : 0;
       if (finalScore > currentBest) {
@@ -61,6 +81,16 @@ function App() {
         setBestScore(currentBest);
         setIsNewBest(false);
       }
+
+      // Check leaderboard qualification
+      qualifiesForLeaderboard(finalScore)
+        .then((qualifies) => {
+          setIsQualify(qualifies);
+        })
+        .catch((err) => {
+          console.error("Could not check leaderboard qualification:", err);
+          setIsQualify(true); // Fallback to allow attempting entry
+        });
     });
 
     return () => {
@@ -82,9 +112,9 @@ function App() {
       clearInterval(countdownIntervalRef.current);
     }
     setGameState("countdown");
-    setCountdown(3);
+    setCountdown(GAME_CONSTANTS.COUNTDOWN_DURATION);
 
-    let current = 3;
+    let current = GAME_CONSTANTS.COUNTDOWN_DURATION;
     countdownIntervalRef.current = setInterval(() => {
       current -= 1;
       if (current <= 0) {
@@ -101,6 +131,8 @@ function App() {
 
   const startGame = () => {
     setIsNewBest(false);
+    setShowLeaderboardFromStart(false);
+    setSubmitError(null);
     startCountdownFlow(() => {
       EventBus.emit("start-game");
     });
@@ -108,8 +140,10 @@ function App() {
 
   const restartGame = () => {
     setScore(0);
-    setTimer(30);
+    setTimer(GAME_CONSTANTS.DURATION);
     setIsNewBest(false);
+    setShowLeaderboardFromStart(false);
+    setSubmitError(null);
     EventBus.emit("restart-game");
 
     startCountdownFlow(() => {
@@ -119,10 +153,12 @@ function App() {
 
   const backToMenu = () => {
     setScore(0);
-    setTimer(30);
+    setTimer(GAME_CONSTANTS.DURATION);
     setIsNewBest(false);
+    setSubmitError(null);
     EventBus.emit("restart-game");
     setGameState("start");
+    setShowLeaderboardFromStart(false);
   };
 
   const toggleLanguage = () => {
@@ -139,26 +175,63 @@ function App() {
       clearTimeout(logoTimeoutRef.current);
     }
 
-    if (nextCount >= 5) {
+    if (nextCount >= GAME_CONSTANTS.LOGO_ANGRY_THRESHOLD) {
       setLogoState("angry");
       logoTimeoutRef.current = setTimeout(() => {
         setLogoState("normal");
         setLogoClickCount(0);
-      }, 3000);
+      }, GAME_CONSTANTS.LOGO_ANGRY_TIMEOUT);
     } else {
       setLogoState("shocked");
       logoTimeoutRef.current = setTimeout(() => {
         setLogoState("normal");
         setLogoClickCount(0);
-      }, 1000);
+      }, GAME_CONSTANTS.LOGO_SHOCKED_TIMEOUT);
     }
   };
 
   const getFeedbackMessage = () => {
-    if (score >= 15) return t("feedback.amazing");
-    if (score >= 10) return t("feedback.greatJob");
-    if (score >= 5) return t("feedback.keepTrying");
+    if (score >= GAME_CONSTANTS.FEEDBACK_AMAZING) return t("feedback.amazing");
+    if (score >= GAME_CONSTANTS.FEEDBACK_GREAT) return t("feedback.greatJob");
+    if (score >= GAME_CONSTANTS.FEEDBACK_GOOD) return t("feedback.keepTrying");
     return t("feedback.tryAgain");
+  };
+
+  const loadLeaderboard = async () => {
+    if (!isFirebaseConfigured) {
+      setLeaderboardError(t("leaderboard.notConfigured"));
+      return;
+    }
+    setIsLoadingLeaderboard(true);
+    setLeaderboardError(null);
+    try {
+      const data = await fetchLeaderboard();
+      setLeaderboardEntries(data);
+    } catch (e: any) {
+      console.error("Error loading leaderboard:", e);
+      setLeaderboardError(t("leaderboard.error"));
+    } finally {
+      setIsLoadingLeaderboard(false);
+    }
+  };
+
+  const handleSubmitScore = async () => {
+    if (!nickname.trim()) return;
+    setSubmittingScore(true);
+    setSubmitError(null);
+    try {
+      const cleanName = nickname.trim().substring(0, 12);
+      localStorage.setItem("game-nickname", cleanName);
+      await submitScore(cleanName, score);
+      setScoreSubmitted(true);
+      await loadLeaderboard();
+      setViewState("leaderboard");
+    } catch (e) {
+      console.error("Submission failed:", e);
+      setSubmitError(t("leaderboard.error"));
+    } finally {
+      setSubmittingScore(false);
+    }
   };
 
   return (
@@ -204,121 +277,43 @@ function App() {
 
         {/* Start Screen */}
         {gameState === "start" && (
-          <div className="absolute inset-0 flex items-center justify-center overlay-bright pointer-events-auto">
-            <div className="game-card p-8 flex flex-col items-center max-w-[90%] w-[440px] mx-4 text-center anim-bounce-in">
-              {/* Logo */}
-              <img
-                src={
-                  logoState === "angry"
-                    ? "/assets/logo_angry.png"
-                    : logoState === "shocked"
-                      ? "/assets/logo_shock.png"
-                      : "/assets/logo.png"
-                }
-                alt="Football Save"
-                className={`game-logo mb-6 ${
-                  logoState === "angry"
-                    ? "logo-angry"
-                    : logoState === "shocked"
-                      ? "logo-shocked"
-                      : "anim-float"
-                }`}
-                onClick={handleLogoClick}
-              />
-
-              {/* Instructions */}
-              <div className="info-bubble mb-8 text-left">
-                <p
-                  className="leading-relaxed text-sm sm:text-base"
-                  style={{ color: "var(--color-text)" }}
-                >
-                  {t("instructions.part1")}
-                  <br />
-                  <br />
-                  {t("instructions.part2")}
-                  <span className="mx-1 inline-block align-middle font-extrabold text-highlight border-2 border-dashed border-highlight rounded-[6px] px-1.5 py-px leading-tight bg-highlight-dark/5">
-                    {t("instructions.bottomZone")}
-                  </span>
-                  {t("instructions.part3")}
-                  <br />
-                  {t("instructions.part4")}
-                  <br />
-                  <br />
-                  {t("instructions.part5")}
-                </p>
-              </div>
-
-              {/* Start Button */}
-              <button
-                onClick={startGame}
-                className="game-btn game-btn-primary py-4 px-12 text-xl w-full"
-              >
-                {t("startGame")}
-              </button>
-            </div>
-          </div>
+          <StartScreen
+            logoState={logoState}
+            handleLogoClick={handleLogoClick}
+            startGame={startGame}
+            showLeaderboardFromStart={showLeaderboardFromStart}
+            setShowLeaderboardFromStart={setShowLeaderboardFromStart}
+            loadLeaderboard={loadLeaderboard}
+            leaderboardEntries={leaderboardEntries}
+            isLoadingLeaderboard={isLoadingLeaderboard}
+            leaderboardError={leaderboardError}
+          />
         )}
 
         {/* Game Over Screen */}
         {gameState === "gameover" && (
-          <div className="absolute inset-0 flex items-center justify-center overlay-celebration pointer-events-auto">
-            <div className="game-card p-6 pb-12 flex flex-col items-center max-w-[90%] w-[340px] mx-4 text-center anim-bounce-in">
-              {/* Top Badge: NEW BEST or TIMES UP */}
-              <div className="badge-new-best">
-                {isNewBest ? t("newBest") : t("timesUp")}
-              </div>
-
-              {/* Bubble Feedback Title */}
-              <h2 className="game-title-cartoon">
-                {isNewBest ? t("feedback.amazing") : getFeedbackMessage()}
-              </h2>
-
-              {/* Score Box */}
-              <div className="score-box">
-                <span className="score-box-value">{score}</span>
-                <span className="score-box-best">
-                  {t("hud.best")}: {bestScore}
-                </span>
-              </div>
-
-              {/* Green Pill Badge */}
-              <div
-                className="score-pill-green"
-                style={{ marginBottom: "24px" }}
-              >
-                {t("savesEarned", { count: score })}
-              </div>
-
-              {/* Leaderboard Tab (decorative) */}
-              <div className="leaderboard-tab" title={t("hud.best")} aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M2 20h20v2H2zm2-2h4V10H4zm6 0h4V6h-4zm6 0h4v-5h-4z" />
-                </svg>
-              </div>
-
-              {/* Footer Buttons floating at bottom */}
-              <div className="footer-btn-container">
-                <button
-                  onClick={restartGame}
-                  className="btn-round-cyan"
-                  title={t("restartGame")}
-                >
-                  <svg viewBox="0 0 24 24">
-                    <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={backToMenu}
-                  className="btn-round-cyan"
-                  title={t("backToMenu")}
-                >
-                  <svg viewBox="0 0 24 24">
-                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+          <GameOverScreen
+            score={score}
+            bestScore={bestScore}
+            isNewBest={isNewBest}
+            viewState={viewState}
+            setViewState={setViewState}
+            nickname={nickname}
+            setNickname={setNickname}
+            isQualify={isQualify}
+            scoreSubmitted={scoreSubmitted}
+            submittingScore={submittingScore}
+            handleSubmitScore={handleSubmitScore}
+            loadLeaderboard={loadLeaderboard}
+            leaderboardEntries={leaderboardEntries}
+            isLoadingLeaderboard={isLoadingLeaderboard}
+            leaderboardError={leaderboardError}
+            restartGame={restartGame}
+            backToMenu={backToMenu}
+            getFeedbackMessage={getFeedbackMessage}
+            isFirebaseConfigured={isFirebaseConfigured}
+            submitError={submitError}
+          />
         )}
       </div>
 

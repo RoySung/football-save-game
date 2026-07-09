@@ -29,5 +29,22 @@
     "time": "TIME",
     "saveZone": "SAVE ZONE",
     "best": "BEST"
+  },
+  "leaderboard": {
+    "title": "LEADERBOARD",
+    "enterName": "ENTER YOUR NICKNAME",
+    "submit": "SUBMIT",
+    "rank": "Rank",
+    "player": "Player",
+    "score": "Score",
+    "you": "YOU",
+    "notQualified": "Not qualified for leaderboard",
+    "loading": "Loading...",
+    "error": "Failed to load leaderboard",
+    "defaultName": "Player",
+    "nicknamePlaceholder": "Name (up to 12 chars)",
+    "submitting": "SUBMITTING...",
+    "qualificationRequired": "Enter name to submit your score!",
+    "notConfigured": "Leaderboard not configured (Check .env)"
   }
 }
