@@ -182,9 +182,29 @@ export class MainGame extends Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    // Choose random target path and kicking direction first
-    const targetX = PhaserMath.Between(width * 0.1, width * 0.9);
+    // Calculate dynamic constraints based on the football's scale
+    const isLandscape = width > height;
+    const bgScale = Math.max(width / this.bg.width, height / this.bg.height);
+    const maxScale = isLandscape
+      ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR)
+      : bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR;
+    const minScale = GAME_CONSTANTS.BALL_MIN_SCALE;
+
+    const textureWidth = this.textures.get("football")?.get().width || 2048;
+    const maxBallRadius = (maxScale * textureWidth) / 2;
+    const minX = maxBallRadius;
+    const maxX = width - maxBallRadius;
+
+    // Choose random target path and kicking direction first (bounded by safety margin)
+    const targetX = PhaserMath.Clamp(
+      PhaserMath.Between(width * 0.1, width * 0.9),
+      minX,
+      maxX
+    );
     const isRightKick = targetX >= width / 2;
+
+    const startX = this.fixedStartX;
+    const startY = this.fixedStartY;
 
     // Play the corresponding kicker animation
     if (isRightKick) {
@@ -197,15 +217,13 @@ export class MainGame extends Scene {
     this.time.delayedCall(GAME_CONSTANTS.BALL_SPAWN_DELAY_OFFSET, () => {
       if (this.isGameOver) return;
 
-      const startX = this.fixedStartX;
-      const startY = this.fixedStartY;
       const targetY = height + 50; // slightly off screen
 
-      // Curve control points
+      // Curve control points (also bounded by safety margin)
       const curveOffset = PhaserMath.Between(-width * 0.5, width * 0.5);
-      const cp1x = startX + curveOffset;
+      const cp1x = PhaserMath.Clamp(startX + curveOffset, minX, maxX);
       const cp1y = startY + (targetY - startY) * 0.3;
-      const cp2x = targetX + curveOffset * 0.5;
+      const cp2x = PhaserMath.Clamp(targetX + curveOffset * 0.5, minX, maxX);
       const cp2y = startY + (targetY - startY) * 0.7;
 
       const curve = new Curves.CubicBezier(
@@ -216,7 +234,7 @@ export class MainGame extends Scene {
       );
 
       const football = this.add.sprite(startX, startY, "football");
-      football.setScale(GAME_CONSTANTS.BALL_MIN_SCALE); // Very small at start (0.05 * 0.7)
+      football.setScale(minScale); // Very small at start
       football.setInteractive({ useHandCursor: true });
 
       // Hitbox padding for mobile (放寬為寬度的 1.5 倍以降低點擊難度)
@@ -229,13 +247,6 @@ export class MainGame extends Scene {
 
       const progress = 1 - this.timer / GAME_CONSTANTS.DURATION;
       const duration = GAME_CONSTANTS.BALL_BASE_DURATION - progress * (GAME_CONSTANTS.BALL_BASE_DURATION * GAME_CONSTANTS.BALL_MIN_DURATION_FACTOR); // 2000ms -> 1000ms speed
-
-      const isLandscape = width > height;
-      const bgScale = Math.max(width / this.bg.width, height / this.bg.height);
-      const maxScale = isLandscape
-        ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR)
-        : bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR;
-      const minScale = GAME_CONSTANTS.BALL_MIN_SCALE;
 
       const tween = this.tweens.add({
         targets: football,
