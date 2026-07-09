@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { LeaderboardView } from "./LeaderboardView";
 import { GAME_CONSTANTS } from "../constants";
 import { type LeaderboardEntry } from "../leaderboard";
+import { AboutMe } from "./AboutMe";
 
 interface GameOverScreenProps {
   score: number;
@@ -183,6 +184,7 @@ export function GameOverScreen({
           </button>
         </div>
       </div>
+      <AboutMe />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { LeaderboardView } from "./LeaderboardView";
 import { type LeaderboardEntry } from "../leaderboard";
+import { AboutMe } from "./AboutMe";
 
 interface StartScreenProps {
   logoState: "normal" | "shocked" | "angry";
@@ -113,6 +114,8 @@ export function StartScreen({
           </>
         )}
       </div>
+      <AboutMe />
     </div>
   );
 }
+

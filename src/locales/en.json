@@ -46,5 +46,9 @@
     "submitting": "SUBMITTING...",
     "qualificationRequired": "Enter name to submit your score!",
     "notConfigured": "Leaderboard not configured (Check .env)"
+  },
+  "aboutMe": {
+    "title": "Dev: Roy Sung",
+    "close": "Close"
   }
 }

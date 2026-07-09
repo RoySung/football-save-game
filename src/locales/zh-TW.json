@@ -46,5 +46,9 @@
     "submitting": "送出中...",
     "qualificationRequired": "輸入名字以傳送分數！",
     "notConfigured": "排行榜未啟用（請配置 .env）"
+  },
+  "aboutMe": {
+    "title": "開發者：Roy Sung",
+    "close": "關閉"
   }
 }
