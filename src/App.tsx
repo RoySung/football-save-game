@@ -237,7 +237,7 @@ function App() {
   return (
     <div
       className="relative w-screen h-screen overflow-hidden font-sans touch-none select-none"
-      style={{ background: "var(--color-bg)" }}
+      style={{ background: "var(--color-bg)", height: "100dvh" }}
     >
       {/* Phaser Game Canvas */}
       <PhaserGame />

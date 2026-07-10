@@ -549,7 +549,7 @@
 /* === 撲球區域標示（虛線框與標籤）=== */
 .save-zone-container {
   position: absolute;
-  bottom: 12px; /* Inset from the bottom edge so the bottom border is visible */
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px)); /* Respect safe area on iOS notch devices */
   left: 12px;
   right: 12px;
   height: 38%; /* Reduced from 50% to be further away from the kicker */
@@ -898,5 +898,16 @@
   border: 2px dashed rgba(255, 68, 68, 0.2);
   border-radius: 12px;
   padding: 6px;
+}
+
+/* Safe Area Utilities */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-safe-4 {
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 

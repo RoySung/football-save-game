@@ -103,8 +103,14 @@ export class MainGame extends Scene {
       ? Math.min((height * 0.35) / 1024, bgScale * 0.48)
       : bgScale * 0.48;
     this.goalkeeper.setScale(gkScale);
-    // Move goalkeeper position (use height - 15 in landscape to position lower, height - 60 in portrait)
-    this.goalkeeper.setPosition(width / 2, height - (isLandscape ? 15 : 60));
+    
+    // Read safe area bottom inset if available
+    const safeAreaBottomStr = window.getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom') || '0px';
+    const safeAreaBottom = parseFloat(safeAreaBottomStr) || 0;
+
+    // Move goalkeeper position (use height - 15 in landscape to position lower, height - (60 + safeAreaBottom) in portrait)
+    const portraitOffset = 60 + safeAreaBottom;
+    this.goalkeeper.setPosition(width / 2, height - (isLandscape ? 15 : portraitOffset));
 
     // Adjust kicker size (scale relative to background to maintain perspective)
     const kickerScale = isLandscape
@@ -129,7 +135,7 @@ export class MainGame extends Scene {
     // Save Zone is the bottom 38% of the screen with 12px padding (縮小區域避開射門員，對齊視覺框線)
     const saveZonePercent = GAME_CONSTANTS.SAVE_ZONE_HEIGHT_PERCENT;
     const bottomPadding = GAME_CONSTANTS.SAVE_ZONE_BOTTOM_PADDING;
-    this.saveZoneYMin = height * (1 - saveZonePercent) - bottomPadding;
+    this.saveZoneYMin = height * (1 - saveZonePercent) - (bottomPadding + safeAreaBottom);
   }
 
   startGame() {

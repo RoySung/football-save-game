@@ -50,7 +50,7 @@ export function AboutMe() {
       tabIndex={isExpanded ? -1 : 0}
       aria-expanded={isExpanded}
       aria-label={isExpanded ? undefined : t("aboutMe.title")}
-      className={`absolute right-4 bottom-4 pointer-events-auto z-20 flex items-center bg-[var(--color-surface)] border-2 border-[var(--stroke-color)] shadow-[0_4px_0_var(--stroke-color)] transition-all duration-300 ease-out select-none cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
+      className={`absolute right-4 bottom-safe-4 pointer-events-auto z-20 flex items-center bg-[var(--color-surface)] border-2 border-[var(--stroke-color)] shadow-[0_4px_0_var(--stroke-color)] transition-all duration-300 ease-out select-none cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
         isExpanded
           ? "p-2.5 w-[240px] h-[64px]"
           : "w-8 h-8 justify-center hover:translate-y-[-2px] hover:shadow-[0_6px_0_var(--stroke-color)] active:translate-y-[2px] active:shadow-[0_2px_0_var(--stroke-color)]"
