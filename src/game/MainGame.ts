@@ -19,7 +19,6 @@ export class MainGame extends Scene {
   private baseSpawnDelay: number = GAME_CONSTANTS.BASE_SPAWN_DELAY;
   private saveZoneYMin!: number;
   private isGameStarted: boolean = false;
-  private tempVec = new Phaser.Math.Vector2();
   private plusTextPool: Phaser.GameObjects.Text[] = [];
 
   constructor() {
