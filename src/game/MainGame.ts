@@ -307,6 +307,9 @@ export class MainGame extends Scene {
       football.on("pointerdown", () => {
         if (this.isGameOver) return;
 
+        // Disable further clicks immediately to prevent double-scoring on rapid taps
+        football.disableInteractive();
+
         // Check if in save zone
         if (football.y >= this.saveZoneYMin) {
           // Success

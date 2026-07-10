@@ -27,7 +27,9 @@ export function LeaderboardView({
       <h2 className="leaderboard-title">{t("leaderboard.title")}</h2>
 
       {isLoading ? (
-        <div className="leaderboard-status-text">{t("leaderboard.loading")}</div>
+        <div className="leaderboard-status-text">
+          {t("leaderboard.loading")}
+        </div>
       ) : error ? (
         <div className="leaderboard-status-text text-red-500">{error}</div>
       ) : (
@@ -36,9 +38,15 @@ export function LeaderboardView({
             <table className="leaderboard-table">
               <thead>
                 <tr>
-                  <th className="leaderboard-header cell-rank">{t("leaderboard.rank")}</th>
-                  <th className="leaderboard-header cell-name">{t("leaderboard.player")}</th>
-                  <th className="leaderboard-header cell-score">{t("leaderboard.score")}</th>
+                  <th className="leaderboard-header cell-rank">
+                    {t("leaderboard.rank")}
+                  </th>
+                  <th className="leaderboard-header cell-name">
+                    {t("leaderboard.player")}
+                  </th>
+                  <th className="leaderboard-header cell-score">
+                    {t("leaderboard.score")}
+                  </th>
                 </tr>
               </thead>
               <tbody>

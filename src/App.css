@@ -426,11 +426,13 @@
 /* When logo is in angry state, we apply an intense shaking/vibrating animation with red glow */
 .logo-angry {
   animation: logo-angry-shake 0.08s infinite linear;
-  filter: drop-shadow(0 0 15px rgba(255, 68, 68, 0.75)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 0 15px rgba(255, 68, 68, 0.75))
+    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
 @keyframes logo-hover-sway {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg) scale(1.05);
   }
   25% {
@@ -442,31 +444,75 @@
 }
 
 @keyframes logo-shock-shake {
-  0% { transform: translate(1px, 1px) rotate(0deg) scale(1.08); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg) scale(1.08); }
-  20% { transform: translate(-3px, 0px) rotate(1deg) scale(1.08); }
-  30% { transform: translate(0px, 2px) rotate(0deg) scale(1.08); }
-  40% { transform: translate(1px, -1px) rotate(1deg) scale(1.08); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg) scale(1.08); }
-  60% { transform: translate(-3px, 1px) rotate(0deg) scale(1.08); }
-  70% { transform: translate(2px, 1px) rotate(-1deg) scale(1.08); }
-  80% { transform: translate(-1px, -1px) rotate(1deg) scale(1.08); }
-  90% { transform: translate(2px, 2px) rotate(0deg) scale(1.08); }
-  100% { transform: translate(1px, -2px) rotate(-1deg) scale(1.08); }
+  0% {
+    transform: translate(1px, 1px) rotate(0deg) scale(1.08);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg) scale(1.08);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg) scale(1.08);
+  }
+  30% {
+    transform: translate(0px, 2px) rotate(0deg) scale(1.08);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg) scale(1.08);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg) scale(1.08);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg) scale(1.08);
+  }
+  70% {
+    transform: translate(2px, 1px) rotate(-1deg) scale(1.08);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg) scale(1.08);
+  }
+  90% {
+    transform: translate(2px, 2px) rotate(0deg) scale(1.08);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg) scale(1.08);
+  }
 }
 
 @keyframes logo-angry-shake {
-  0% { transform: translate(2px, 2px) rotate(0deg) scale(1.1); }
-  10% { transform: translate(-2px, -3px) rotate(-1.5deg) scale(1.1); }
-  20% { transform: translate(-4px, 0px) rotate(1.5deg) scale(1.1); }
-  30% { transform: translate(0px, 3px) rotate(0deg) scale(1.1); }
-  40% { transform: translate(2px, -2px) rotate(1.5deg) scale(1.1); }
-  50% { transform: translate(-2px, 3px) rotate(-1.5deg) scale(1.1); }
-  60% { transform: translate(-4px, 2px) rotate(0deg) scale(1.1); }
-  70% { transform: translate(3px, 2px) rotate(-1.5deg) scale(1.1); }
-  80% { transform: translate(-2px, -2px) rotate(1.5deg) scale(1.1); }
-  90% { transform: translate(3px, 3px) rotate(0deg) scale(1.1); }
-  100% { transform: translate(2px, -3px) rotate(-1.5deg) scale(1.1); }
+  0% {
+    transform: translate(2px, 2px) rotate(0deg) scale(1.1);
+  }
+  10% {
+    transform: translate(-2px, -3px) rotate(-1.5deg) scale(1.1);
+  }
+  20% {
+    transform: translate(-4px, 0px) rotate(1.5deg) scale(1.1);
+  }
+  30% {
+    transform: translate(0px, 3px) rotate(0deg) scale(1.1);
+  }
+  40% {
+    transform: translate(2px, -2px) rotate(1.5deg) scale(1.1);
+  }
+  50% {
+    transform: translate(-2px, 3px) rotate(-1.5deg) scale(1.1);
+  }
+  60% {
+    transform: translate(-4px, 2px) rotate(0deg) scale(1.1);
+  }
+  70% {
+    transform: translate(3px, 2px) rotate(-1.5deg) scale(1.1);
+  }
+  80% {
+    transform: translate(-2px, -2px) rotate(1.5deg) scale(1.1);
+  }
+  90% {
+    transform: translate(3px, 3px) rotate(0deg) scale(1.1);
+  }
+  100% {
+    transform: translate(2px, -3px) rotate(-1.5deg) scale(1.1);
+  }
 }
 
 /* === 分數展示（Game Over 畫面）=== */
@@ -549,13 +595,17 @@
 /* === 撲球區域標示（虛線框與標籤）=== */
 .save-zone-container {
   position: absolute;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px)); /* Respect safe area on iOS notch devices */
+  bottom: calc(
+    12px + env(safe-area-inset-bottom, 0px)
+  ); /* Respect safe area on iOS notch devices */
   left: 12px;
   right: 12px;
   height: 38%; /* Reduced from 50% to be further away from the kicker */
   box-sizing: border-box;
   z-index: 5; /* Ensure it's above Phaser Canvas but below standard UI components */
-  transition: opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1), transform 1000ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 1000ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .save-zone-guide {
@@ -730,14 +780,18 @@
   border: 3px solid var(--stroke-color);
   border-radius: var(--radius-full);
   outline: none;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 0 rgba(0, 0, 0, 0.05);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.1),
+    0 4px 0 rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
   text-align: center;
 }
 
 .game-input:focus {
   border-color: var(--color-primary);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 4px rgba(79, 195, 247, 0.25);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 0 0 4px rgba(79, 195, 247, 0.25);
 }
 
 .leaderboard-title {
@@ -763,7 +817,7 @@
   border-radius: 20px;
   border: 3px solid var(--stroke-color);
   box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  overflow: clip;
   display: flex;
   flex-direction: column;
 }
@@ -771,7 +825,6 @@
 .leaderboard-scroll-area {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 4px;
   box-sizing: border-box;
 }
 
@@ -801,7 +854,11 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding-bottom: 6px;
+  padding: 6px 10px 6px 10px;
+  position: sticky;
+  top: 0;
+  background: var(--color-score-bg);
+  z-index: 1;
 }
 
 .leaderboard-row {
@@ -835,12 +892,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
+  max-width: 0;
 }
 
 .cell-score {
   width: 25%;
-  text-align: right;
+  text-align: center;
   font-weight: 900;
   color: var(--color-accent);
 }
@@ -911,4 +968,3 @@
 .bottom-safe-4 {
   bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
-
