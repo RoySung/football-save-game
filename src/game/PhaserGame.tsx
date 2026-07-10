@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { Game } from 'phaser';
 import { config } from './GameConfig';
 
-export const PhaserGame = () => {
+export const PhaserGame = memo(() => {
     const gameRef = useRef<Game | null>(null);
 
     useEffect(() => {
@@ -19,4 +19,4 @@ export const PhaserGame = () => {
     }, []);
 
     return <div id="phaser-container" className="absolute inset-0 w-full h-full" />;
-};
+});

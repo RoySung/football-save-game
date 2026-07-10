@@ -320,7 +320,7 @@ function App() {
       {/* Save Zone Guide Box */}
       {(gameState === "playing" || gameState === "countdown") && (
         <div
-          className={`save-zone-container pointer-events-none transition-all duration-1000 ${gameState === "playing" ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"}`}
+          className={`save-zone-container pointer-events-none ${gameState === "playing" ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"}`}
         >
           <div className="save-zone-guide">
             <span className="save-zone-label">{t("hud.saveZone")}</span>

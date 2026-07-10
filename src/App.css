@@ -555,6 +555,7 @@
   height: 38%; /* Reduced from 50% to be further away from the kicker */
   box-sizing: border-box;
   z-index: 5; /* Ensure it's above Phaser Canvas but below standard UI components */
+  transition: opacity 1000ms cubic-bezier(0.4, 0, 0.2, 1), transform 1000ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .save-zone-guide {

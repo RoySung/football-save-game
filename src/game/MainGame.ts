@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { Scene, Math as PhaserMath, Curves } from "phaser";
+import { Scene, Math as PhaserMath } from "phaser";
 import { EventBus } from "./EventBus";
 import { GAME_CONSTANTS } from "../constants";
 
@@ -19,6 +19,8 @@ export class MainGame extends Scene {
   private baseSpawnDelay: number = GAME_CONSTANTS.BASE_SPAWN_DELAY;
   private saveZoneYMin!: number;
   private isGameStarted: boolean = false;
+  private tempVec = new Phaser.Math.Vector2();
+  private plusTextPool: Phaser.GameObjects.Text[] = [];
 
   constructor() {
     super("MainGame");
@@ -67,6 +69,24 @@ export class MainGame extends Scene {
       repeat: 0,
     });
 
+    // Create a pool of 3 text objects for "+1" score indicators to avoid GC overhead from dynamic instantiation
+    this.plusTextPool = [];
+    for (let i = 0; i < 3; i++) {
+      const txt = this.add.text(0, 0, "+1", {
+        fontSize: GAME_CONSTANTS.SCORE_EFFECT_FONT_SIZE,
+        fontFamily: "Nunito, sans-serif",
+        fontStyle: "bold",
+        color: GAME_CONSTANTS.SCORE_EFFECT_FONT_COLOR,
+        stroke: GAME_CONSTANTS.SCORE_EFFECT_STROKE_COLOR,
+        strokeThickness: GAME_CONSTANTS.SCORE_EFFECT_STROKE_THICKNESS,
+        shadow: { blur: 10, color: "#000000", fill: true },
+      })
+      .setOrigin(0.5)
+      .setAlpha(0)
+      .setDepth(10);
+      this.plusTextPool.push(txt);
+    }
+
     this.updateLayout(width, height);
 
     EventBus.on("start-game", this.startGame, this);
@@ -99,9 +119,13 @@ export class MainGame extends Scene {
     // Adjust goalkeeper size (scale relative to background/goal size to remain proportional across all screen sizes)
     // In landscape, we scale based on height * 0.35, but cap it using bgScale to avoid it getting too large.
     // In portrait, we scale strictly proportional to bgScale so it matches the goal post size perfectly.
-    const gkScale = isLandscape
-      ? Math.min((height * 0.35) / 1024, bgScale * 0.48)
-      : bgScale * 0.48;
+    const REF_BG_WIDTH = 2048;
+    const bgWidthFactor = this.bg.width / REF_BG_WIDTH;
+    const baseGkWidth = this.goalkeeper.width || 1024;
+    const gkScaleMultiplier = 1024 / baseGkWidth;
+    const gkScale = (isLandscape
+      ? Math.min((height * 0.35) / 1024, bgScale * 0.48 * bgWidthFactor)
+      : bgScale * 0.48 * bgWidthFactor) * gkScaleMultiplier;
     this.goalkeeper.setScale(gkScale);
     
     // Read safe area bottom inset if available
@@ -113,9 +137,11 @@ export class MainGame extends Scene {
     this.goalkeeper.setPosition(width / 2, height - (isLandscape ? 15 : portraitOffset));
 
     // Adjust kicker size (scale relative to background to maintain perspective)
-    const kickerScale = isLandscape
-      ? Math.min((height * 0.15) / 1024, bgScale * 0.22)
-      : bgScale * 0.22;
+    const baseKickerWidth = this.kicker.width || 1024;
+    const kickerScaleMultiplier = 1024 / baseKickerWidth;
+    const kickerScale = (isLandscape
+      ? Math.min((height * 0.15) / 1024, bgScale * 0.22 * bgWidthFactor)
+      : bgScale * 0.22 * bgWidthFactor) * kickerScaleMultiplier;
     this.kicker.setScale(kickerScale);
     this.fixedStartX = width / 2;
 
@@ -191,12 +217,15 @@ export class MainGame extends Scene {
     // Calculate dynamic constraints based on the football's scale
     const isLandscape = width > height;
     const bgScale = Math.max(width / this.bg.width, height / this.bg.height);
-    const maxScale = isLandscape
-      ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR)
-      : bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR;
-    const minScale = GAME_CONSTANTS.BALL_MIN_SCALE;
-
+    const REF_BG_WIDTH = 2048;
+    const bgWidthFactor = this.bg.width / REF_BG_WIDTH;
     const textureWidth = this.textures.get("football")?.get().width || 2048;
+    const ballScaleMultiplier = 2048 / textureWidth;
+    const maxScale = (isLandscape
+      ? Math.min((height * 0.2 * 0.7) / 1024, bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR * bgWidthFactor)
+      : bgScale * GAME_CONSTANTS.BALL_MAX_SCALE_FACTOR * bgWidthFactor) * ballScaleMultiplier;
+    const minScale = GAME_CONSTANTS.BALL_MIN_SCALE * ballScaleMultiplier;
+
     const maxBallRadius = (maxScale * textureWidth) / 2;
     const minX = maxBallRadius;
     const maxX = width - maxBallRadius;
@@ -232,13 +261,6 @@ export class MainGame extends Scene {
       const cp2x = PhaserMath.Clamp(targetX + curveOffset * 0.5, minX, maxX);
       const cp2y = startY + (targetY - startY) * 0.7;
 
-      const curve = new Curves.CubicBezier(
-        new Phaser.Math.Vector2(startX, startY),
-        new Phaser.Math.Vector2(cp1x, cp1y),
-        new Phaser.Math.Vector2(cp2x, cp2y),
-        new Phaser.Math.Vector2(targetX, targetY),
-      );
-
       const football = this.add.sprite(startX, startY, "football");
       football.setScale(minScale); // Very small at start
       football.setInteractive({ useHandCursor: true });
@@ -261,8 +283,18 @@ export class MainGame extends Scene {
         ease: "Sine.easeIn",
         onUpdate: (twn) => {
           const t = twn.getValue() || 0;
-          const pos = curve.getPoint(t);
-          football.setPosition(pos.x, pos.y);
+          
+          // Pure math bezier curve calculations (zero memory allocation)
+          const mt = 1 - t;
+          const mt2 = mt * mt;
+          const mt3 = mt2 * mt;
+          const t2 = t * t;
+          const t3 = t2 * t;
+
+          const x = mt3 * startX + 3 * mt2 * t * cp1x + 3 * mt * t2 * cp2x + t3 * targetX;
+          const y = mt3 * startY + 3 * mt2 * t * cp1y + 3 * mt * t2 * cp2y + t3 * targetY;
+          football.setPosition(x, y);
+
           const currentScale = minScale + t * (maxScale - minScale);
           football.setScale(currentScale);
           football.rotation += 0.15;
@@ -355,27 +387,19 @@ export class MainGame extends Scene {
             });
           }
 
-          // Success visual effect (+1 text)
-          const plusText = this.add
-            .text(football.x, football.y, "+1", {
-              fontSize: GAME_CONSTANTS.SCORE_EFFECT_FONT_SIZE,
-              fontFamily: "Nunito, sans-serif",
-              fontStyle: "bold",
-              color: GAME_CONSTANTS.SCORE_EFFECT_FONT_COLOR,
-              stroke: GAME_CONSTANTS.SCORE_EFFECT_STROKE_COLOR,
-              strokeThickness: GAME_CONSTANTS.SCORE_EFFECT_STROKE_THICKNESS,
-              shadow: { blur: 10, color: "#000000", fill: true },
-            })
-            .setOrigin(0.5);
-
-          this.tweens.add({
-            targets: plusText,
-            y: plusText.y - GAME_CONSTANTS.SCORE_EFFECT_FLOAT_DISTANCE,
-            alpha: 0,
-            duration: GAME_CONSTANTS.SCORE_EFFECT_DURATION,
-            ease: "Cubic.easeOut",
-            onComplete: () => plusText.destroy(),
-          });
+          // Success visual effect (pooled +1 text, zero memory allocation)
+          const plusText = this.plusTextPool.find(txt => txt.alpha === 0);
+          if (plusText) {
+            plusText.setPosition(football.x, football.y);
+            plusText.setAlpha(1);
+            this.tweens.add({
+              targets: plusText,
+              y: football.y - GAME_CONSTANTS.SCORE_EFFECT_FLOAT_DISTANCE,
+              alpha: 0,
+              duration: GAME_CONSTANTS.SCORE_EFFECT_DURATION,
+              ease: "Cubic.easeOut",
+            });
+          }
         } else {
           // Clicked too early
           football.setTint(0xff0000);

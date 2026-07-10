@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+declare const APP_VERSION: string;
+
 export function AboutMe() {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -85,9 +87,14 @@ export function AboutMe() {
         {/* Name and links */}
         <div className="flex flex-col items-start ml-2.5 flex-1 min-w-0">
           <div className="flex justify-between items-center w-full">
-            <span className="text-[11px] font-black text-[var(--color-text)] tracking-wider truncate">
-              {t("aboutMe.title")}
-            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[11px] font-black text-[var(--color-text)] tracking-wider truncate">
+                {t("aboutMe.title")}
+              </span>
+              <span className="text-[9px] font-bold text-[var(--color-text-light)] whitespace-nowrap opacity-60">
+                v{APP_VERSION}
+              </span>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();

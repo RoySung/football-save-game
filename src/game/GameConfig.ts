@@ -7,7 +7,7 @@ export const config: Types.Core.GameConfig = {
     type: Phaser.AUTO,
     parent: 'phaser-container',
     backgroundColor: '#000000',
-    transparent: true,
+    transparent: false,
     scale: {
         mode: Phaser.Scale.RESIZE,
         width: '100%',
