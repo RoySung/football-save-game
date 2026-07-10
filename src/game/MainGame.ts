@@ -241,6 +241,9 @@ export class MainGame extends Scene {
     const startX = this.fixedStartX;
     const startY = this.fixedStartY;
 
+    // Randomly determine if this is a lob ball (arcs upward first before falling)
+    const isLob = Math.random() < GAME_CONSTANTS.LOB_BALL_CHANCE;
+
     // Play the corresponding kicker animation
     if (isRightKick) {
       this.kicker.play("kicker-kick-right");
@@ -254,12 +257,25 @@ export class MainGame extends Scene {
 
       const targetY = height + 50; // slightly off screen
 
-      // Curve control points (also bounded by safety margin)
-      const curveOffset = PhaserMath.Between(-width * 0.5, width * 0.5);
-      const cp1x = PhaserMath.Clamp(startX + curveOffset, minX, maxX);
-      const cp1y = startY + (targetY - startY) * 0.3;
-      const cp2x = PhaserMath.Clamp(targetX + curveOffset * 0.5, minX, maxX);
-      const cp2y = startY + (targetY - startY) * 0.7;
+      let cp1x: number, cp1y: number, cp2x: number, cp2y: number;
+
+      if (isLob) {
+        // Lob ball: arc upward first, then curve back down to save zone
+        // cp1 is high above the kicker (arc apex), cp2 brings ball back to falling trajectory
+        const arcHeight = height * GAME_CONSTANTS.LOB_BALL_ARC_HEIGHT_FACTOR;
+        const lobCurveX = PhaserMath.Between(-width * 0.2, width * 0.2);
+        cp1x = PhaserMath.Clamp(startX + lobCurveX, minX, maxX);
+        cp1y = startY - arcHeight; // Well above kicker — the peak of the lob
+        cp2x = PhaserMath.Clamp(targetX + lobCurveX * 0.3, minX, maxX);
+        cp2y = startY + (targetY - startY) * 0.3; // Transition back into falling path
+      } else {
+        // Normal ball: straight downward Bézier curve
+        const curveOffset = PhaserMath.Between(-width * 0.5, width * 0.5);
+        cp1x = PhaserMath.Clamp(startX + curveOffset, minX, maxX);
+        cp1y = startY + (targetY - startY) * 0.3;
+        cp2x = PhaserMath.Clamp(targetX + curveOffset * 0.5, minX, maxX);
+        cp2y = startY + (targetY - startY) * 0.7;
+      }
 
       const football = this.add.sprite(startX, startY, "football");
       football.setScale(minScale); // Very small at start
@@ -274,13 +290,14 @@ export class MainGame extends Scene {
       football.setInteractive(hitArea, Phaser.Geom.Circle.Contains);
 
       const progress = 1 - this.timer / GAME_CONSTANTS.DURATION;
-      const duration = GAME_CONSTANTS.BALL_BASE_DURATION - progress * (GAME_CONSTANTS.BALL_BASE_DURATION * GAME_CONSTANTS.BALL_MIN_DURATION_FACTOR); // 2000ms -> 1000ms speed
+      const baseDuration = isLob ? GAME_CONSTANTS.LOB_BALL_BASE_DURATION : GAME_CONSTANTS.BALL_BASE_DURATION;
+      const duration = baseDuration - progress * (baseDuration * GAME_CONSTANTS.BALL_MIN_DURATION_FACTOR);
 
       const tween = this.tweens.add({
         targets: football,
         z: 1, // dummy prop
         duration: duration,
-        ease: "Sine.easeIn",
+        ease: isLob ? "Sine.easeInOut" : "Sine.easeIn",
         onUpdate: (twn) => {
           const t = twn.getValue() || 0;
           
@@ -295,7 +312,15 @@ export class MainGame extends Scene {
           const y = mt3 * startY + 3 * mt2 * t * cp1y + 3 * mt * t2 * cp2y + t3 * targetY;
           football.setPosition(x, y);
 
-          const currentScale = minScale + t * (maxScale - minScale);
+          let currentScale: number;
+          if (isLob) {
+            // Lob ball: always grows small→big, but front-loaded slower growth (ball arcing up)
+            // then accelerated growth as it falls back down toward the goalkeeper
+            const scaleFactor = Math.pow(t, 1.4);
+            currentScale = minScale + scaleFactor * (maxScale - minScale);
+          } else {
+            currentScale = minScale + t * (maxScale - minScale);
+          }
           football.setScale(currentScale);
           football.rotation += 0.15;
         },
@@ -310,7 +335,7 @@ export class MainGame extends Scene {
         // Disable further clicks immediately to prevent double-scoring on rapid taps
         football.disableInteractive();
 
-        // Check if in save zone
+        // Check if in save zone (same zone for both normal and lob balls)
         if (football.y >= this.saveZoneYMin) {
           // Success
           this.score++;

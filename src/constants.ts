@@ -4,16 +4,21 @@ export const GAME_CONSTANTS = {
   COUNTDOWN_DURATION: 3, // seconds
 
   // Spawn parameters
-  BASE_SPAWN_DELAY: 2000, // ms
+  BASE_SPAWN_DELAY: 1000, // ms (reduced from 2000 to increase pace)
   SPAWN_MIN_DELAY_FACTOR: 0.6, // progress multiplier (1 - progress * 0.6 => min delay 800ms)
   BALL_SPAWN_DELAY_OFFSET: 150, // ms, aligned with striker kick contact frame
 
   // Ball physics & scaling
-  BALL_MIN_SCALE: 0.035,
+  BALL_MIN_SCALE: 0.025,
   BALL_MAX_SCALE_FACTOR: 0.18,
   BALL_HITBOX_SCALE: 0.75,
   BALL_BASE_DURATION: 2000, // ms
   BALL_MIN_DURATION_FACTOR: 0.5, // progress multiplier (1 - progress * 0.5 => min duration 1000ms)
+
+  // Lob ball settings
+  LOB_BALL_CHANCE: 0.25, // 25% chance to spawn a lob ball
+  LOB_BALL_BASE_DURATION: 2500, // ms (longer arc = more time for player to react)
+  LOB_BALL_ARC_HEIGHT_FACTOR: 0.35, // arc peak as fraction of screen height above kicker
 
   // Layout & Save Zone
   SAVE_ZONE_HEIGHT_PERCENT: 0.38,
@@ -43,7 +48,7 @@ export const GAME_CONSTANTS = {
 
   // Leaderboard settings
   LEADERBOARD_LIMIT: 10,
-  LEADERBOARD_MAX_SCORE: 50,
+  LEADERBOARD_MAX_SCORE: 100,
   LEADERBOARD_MAX_NAME_LENGTH: 12,
   LEADERBOARD_COLLECTION: "leaderboard",
   LEADERBOARD_SALT: "f00tb4ll_s4v3_s3cr3t",
