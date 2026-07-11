@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LeaderboardView } from "./LeaderboardView";
 import { GAME_CONSTANTS } from "../constants";
@@ -50,6 +51,20 @@ export function GameOverScreen({
   submitError,
 }: GameOverScreenProps) {
   const { t } = useTranslation();
+  const [showButtons, setShowButtons] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowButtons(true);
+    }, GAME_CONSTANTS.GAME_OVER_BUTTONS_DELAY);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const delayedBtnClass = `transition-all duration-500 ease-out ${
+    showButtons
+      ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+      : "opacity-0 translate-y-4 scale-95 pointer-events-none"
+  }`;
 
   return (
     <div className="absolute inset-0 flex items-center justify-center overlay-celebration pointer-events-auto">
@@ -84,7 +99,7 @@ export function GameOverScreen({
 
             {/* Nickname Input & Submission */}
             {isFirebaseConfigured && isQualify && !scoreSubmitted ? (
-              <div className="nickname-input-container">
+              <div className={`nickname-input-container ${delayedBtnClass}`}>
                 <input
                   type="text"
                   value={nickname}
@@ -111,12 +126,12 @@ export function GameOverScreen({
                 </button>
               </div>
             ) : isFirebaseConfigured && !isQualify ? (
-              <div className="leaderboard-not-qualified">
+              <div className={`leaderboard-not-qualified ${delayedBtnClass}`}>
                 {t("leaderboard.notQualified")}
               </div>
             ) : (
               !isFirebaseConfigured && (
-                <div className="leaderboard-not-qualified">
+                <div className={`leaderboard-not-qualified ${delayedBtnClass}`}>
                   {t("leaderboard.notConfigured")}
                 </div>
               )
@@ -128,7 +143,7 @@ export function GameOverScreen({
                 loadLeaderboard();
                 setViewState("leaderboard");
               }}
-              className="game-btn game-btn-primary py-2.5 px-6 text-md w-[85%] mt-2"
+              className={`game-btn game-btn-primary py-2.5 px-6 text-md w-[85%] mt-2 ${delayedBtnClass}`}
             >
               {t("leaderboard.title")}
             </button>
@@ -148,7 +163,7 @@ export function GameOverScreen({
             {/* Back to Summary Button */}
             <button
               onClick={() => setViewState("summary")}
-              className="game-btn game-btn-secondary py-2.5 px-6 text-md w-[85%] mt-2"
+              className={`game-btn game-btn-secondary py-2.5 px-6 text-md w-[85%] mt-2 ${delayedBtnClass}`}
             >
               {t("backToMenu")}
             </button>
@@ -163,7 +178,7 @@ export function GameOverScreen({
         </div>
 
         {/* Footer Buttons floating at bottom */}
-        <div className="footer-btn-container">
+        <div className={`footer-btn-container ${delayedBtnClass}`}>
           <button
             onClick={restartGame}
             className="btn-round-cyan"

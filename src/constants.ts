@@ -57,4 +57,7 @@ export const GAME_CONSTANTS = {
   FEEDBACK_AMAZING: 15,
   FEEDBACK_GREAT: 10,
   FEEDBACK_GOOD: 5,
+
+  // Button delay on game over screen
+  GAME_OVER_BUTTONS_DELAY: 1000, // ms
 } as const;
