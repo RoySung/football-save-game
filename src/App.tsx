@@ -267,7 +267,7 @@ function App() {
             </div>
             {/* Timer Pill */}
             <div
-              className={`hud-pill ${timer <= 10 ? "hud-pill-warning" : ""}`}
+              className={`hud-pill ${timer <= 5 ? "hud-pill-critical" : timer <= 10 ? "hud-pill-warning" : ""}`}
             >
               <span className="hud-label">{t("hud.time")}</span> 00:
               {timer.toString().padStart(2, "0")}

@@ -22,6 +22,8 @@ export class MainGame extends Scene {
   private plusTextPool: Phaser.GameObjects.Text[] = [];
   private footballPool!: Phaser.GameObjects.Group;
   private sharedHitArea!: Phaser.Geom.Circle;
+  private isTensionMode: boolean = false;
+  private bgTintTween?: Phaser.Tweens.Tween;
 
   constructor() {
     super("MainGame");
@@ -32,6 +34,8 @@ export class MainGame extends Scene {
     this.timer = GAME_CONSTANTS.DURATION;
     this.isGameOver = false;
     this.isGameStarted = false;
+    this.isTensionMode = false;
+    this.bgTintTween = undefined;
 
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
@@ -40,7 +44,7 @@ export class MainGame extends Scene {
     this.bg = this.add.image(width / 2, height / 2, "bg_stadium");
 
     // Goalkeeper (at the bottom)
-    this.goalkeeper = this.add.sprite(width / 2, height - 150, "goalkeeper", 0);
+    this.goalkeeper = this.add.sprite(width / 2, height - 150, "goalkeeper", 2);
     this.goalkeeper.setOrigin(0.5, 1); // Anchor at bottom center
 
     // Kicker (at the middle-top, standing on the pitch)
@@ -209,6 +213,34 @@ export class MainGame extends Scene {
     this.timer--;
     EventBus.emit("update-timer", this.timer);
 
+    if (this.timer <= GAME_CONSTANTS.TENSION_TIME_THRESHOLD && this.timer > 0) {
+      this.isTensionMode = true;
+
+      // Camera shake: intensity builds up as time runs out
+      const remaining = this.timer;
+      const intensity = GAME_CONSTANTS.TENSION_SHAKE_BASE_INTENSITY - (remaining * 0.001);
+      this.cameras.main.shake(1000, Math.max(0.001, intensity));
+
+      // Background pulsing orange-red (桔紅色) tint tween
+      if (!this.bgTintTween) {
+        this.bgTintTween = this.tweens.addCounter({
+          from: 0,
+          to: 100,
+          duration: 500, // pulse every 0.5s (yoyo = 1.0s full cycle)
+          yoyo: true,
+          repeat: -1,
+          onUpdate: (tween) => {
+            const progress = (tween.getValue() as number) / 100;
+            // Red stays 255, Green goes 255 -> 100, Blue goes 255 -> 30 (Vibrant orange-red / 桔紅色)
+            const g = Math.floor(255 - progress * 155);
+            const b = Math.floor(255 - progress * 225);
+            const tint = Phaser.Display.Color.GetColor(255, g, b);
+            this.bg.setTint(tint);
+          }
+        });
+      }
+    }
+
     if (this.timer <= 0) {
       this.gameOver();
     }
@@ -261,11 +293,11 @@ export class MainGame extends Scene {
     // Randomly determine if this is a lob ball (arcs upward first before falling)
     const isLob = Math.random() < GAME_CONSTANTS.LOB_BALL_CHANCE;
 
-    // Play the corresponding kicker animation
-    if (isRightKick) {
-      this.kicker.play("kicker-kick-right");
-    } else {
-      this.kicker.play("kicker-kick-left");
+    // Play the corresponding kicker animation and apply speed factor
+    const kickerAnimKey = isRightKick ? "kicker-kick-right" : "kicker-kick-left";
+    this.kicker.play(kickerAnimKey);
+    if (this.kicker.anims) {
+      this.kicker.anims.timeScale = this.isTensionMode ? GAME_CONSTANTS.TENSION_ANIM_SPEED_FACTOR : 1.0;
     }
 
     // Delay ball spawning by 150ms to align with physical kick contact frame
@@ -386,13 +418,19 @@ export class MainGame extends Scene {
           this.tweens.killTweensOf(this.goalkeeper);
           this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
           this.goalkeeper.setAngle(0);
-          this.goalkeeper.setFrame(0);
+          this.goalkeeper.setFrame(2);
 
           const gkScale = this.goalkeeper.scale;
           const threshold = GAME_CONSTANTS.GK_DIVE_THRESHOLD * gkScale;
           const diveDistance = GAME_CONSTANTS.GK_DIVE_DISTANCE * gkScale;
           const diveHeight = GAME_CONSTANTS.GK_DIVE_HEIGHT_OFFSET * gkScale;
           const jumpHeight = GAME_CONSTANTS.GK_JUMP_HEIGHT * gkScale;
+
+          // Speed up the goalkeeper movements in tension mode
+          const speedFactor = this.isTensionMode ? GAME_CONSTANTS.TENSION_ANIM_SPEED_FACTOR : 1.0;
+          const diveDuration = GAME_CONSTANTS.GK_DIVE_DURATION / speedFactor;
+          const diveHold = GAME_CONSTANTS.GK_DIVE_HOLD / speedFactor;
+          const jumpDuration = GAME_CONSTANTS.GK_JUMP_DURATION / speedFactor;
 
           if (diffX > threshold) {
             // Dive Right (Frame 1 + position offset tween)
@@ -402,11 +440,11 @@ export class MainGame extends Scene {
               x: this.gkStartX + diveDistance,
               y: this.gkStartY + diveHeight,
               angle: 12,
-              duration: GAME_CONSTANTS.GK_DIVE_DURATION,
+              duration: diveDuration,
               yoyo: true,
-              hold: GAME_CONSTANTS.GK_DIVE_HOLD,
+              hold: diveHold,
               onComplete: () => {
-                this.goalkeeper.setFrame(0);
+                this.goalkeeper.setFrame(2);
                 this.goalkeeper.setAngle(0);
                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
               },
@@ -419,25 +457,26 @@ export class MainGame extends Scene {
               x: this.gkStartX - diveDistance,
               y: this.gkStartY + diveHeight,
               angle: -12,
-              duration: GAME_CONSTANTS.GK_DIVE_DURATION,
+              duration: diveDuration,
               yoyo: true,
-              hold: GAME_CONSTANTS.GK_DIVE_HOLD,
+              hold: diveHold,
               onComplete: () => {
-                this.goalkeeper.setFrame(0);
+                this.goalkeeper.setFrame(2);
                 this.goalkeeper.setAngle(0);
                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
               },
             });
           } else {
             // Center block / jump (Frame 0 + vertical bounce)
+            this.goalkeeper.setFrame(0);
             this.tweens.add({
               targets: this.goalkeeper,
               y: this.gkStartY - jumpHeight,
-              duration: GAME_CONSTANTS.GK_JUMP_DURATION,
+              duration: jumpDuration,
               yoyo: true,
               ease: "Quad.easeOut",
               onComplete: () => {
-                this.goalkeeper.setFrame(0);
+                this.goalkeeper.setFrame(2);
                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
               },
             });
@@ -471,8 +510,26 @@ export class MainGame extends Scene {
 
   gameOver() {
     this.isGameOver = true;
+    this.isTensionMode = false;
     if (this.timerEvent) this.timerEvent.destroy();
     if (this.spawnEvent) this.spawnEvent.destroy();
+
+    // Stop background pulsing tint
+    if (this.bgTintTween) {
+      this.bgTintTween.stop();
+      this.bgTintTween = undefined;
+    }
+    this.bg.clearTint();
+
+    // Reset kicker animation timescale
+    if (this.kicker && this.kicker.anims) {
+      this.kicker.anims.timeScale = 1.0;
+    }
+
+    // Stop camera shake
+    if (this.cameras && this.cameras.main) {
+      this.cameras.main.shakeEffect.reset();
+    }
 
     // Clean up all in-flight footballs to prevent stale tween callbacks after scene restart
     this.footballPool.getChildren().forEach(child => {

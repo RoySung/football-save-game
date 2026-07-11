@@ -61,4 +61,9 @@ export const GAME_CONSTANTS = {
 
   // Button delay on game over screen
   GAME_OVER_BUTTONS_DELAY: 1000, // ms
+
+  // High-tension settings (last 5 seconds)
+  TENSION_TIME_THRESHOLD: 5, // seconds
+  TENSION_ANIM_SPEED_FACTOR: 1.6, // multiplier for anim and movement speed
+  TENSION_SHAKE_BASE_INTENSITY: 0.008, // base for shake scaling (intensity dynamic: base - remaining * 0.001)
 } as const;

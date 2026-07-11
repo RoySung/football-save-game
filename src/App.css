@@ -354,6 +354,23 @@
   animation: pulseWarning 0.8s ease-in-out infinite;
 }
 
+.hud-pill-critical {
+  animation: pulseCritical 0.4s ease-in-out infinite, shakeCritical 0.2s infinite;
+  color: #d84315;
+  border-color: #ff5722;
+}
+
+@keyframes pulseCritical {
+  0%, 100% { background-color: #FFCCBC; }
+  50% { background-color: #FF8A65; }
+}
+
+@keyframes shakeCritical {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
 .hud-label {
   font-size: 0.7rem;
   font-weight: 900;
