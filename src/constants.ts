@@ -63,7 +63,7 @@ export const GAME_CONSTANTS = {
   FEEDBACK_GOOD: 5,
 
   // Button delay on game over screen
-  GAME_OVER_BUTTONS_DELAY: 1000, // ms
+  GAME_OVER_BUTTONS_DELAY: 1200, // ms
 
   // High-tension settings (last 10 seconds)
   TENSION_TIME_THRESHOLD: 10, // seconds

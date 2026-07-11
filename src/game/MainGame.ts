@@ -28,6 +28,10 @@ export class MainGame extends Scene {
   private isTensionMode: boolean = false;
   private bgTintTween?: Phaser.Tweens.Tween;
   private bgMusic?: Phaser.Sound.BaseSound;
+  private skyGraphics!: Phaser.GameObjects.Graphics;
+  private clouds: Phaser.GameObjects.Sprite[] = [];
+  private skyColorProgress: number = 0;
+  private skyColorTween?: Phaser.Tweens.Tween;
 
   constructor() {
     super("MainGame");
@@ -40,6 +44,8 @@ export class MainGame extends Scene {
     this.isGameStarted = false;
     this.isTensionMode = false;
     this.bgTintTween = undefined;
+    this.skyColorProgress = 0;
+    this.skyColorTween = undefined;
 
     // Load initial mute state from localStorage
     const isMuted = localStorage.getItem("game-muted") === "true";
@@ -52,16 +58,33 @@ export class MainGame extends Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
+    // Sky Background
+    this.skyGraphics = this.add.graphics();
+    this.skyGraphics.setDepth(-2);
+
+    // Clouds Spawning
+    this.clouds = [];
+    const cloudCount = 5;
+    for (let i = 0; i < cloudCount; i++) {
+      const frameVal = Phaser.Math.Between(0, 3);
+      const cloud = this.add.sprite(0, 0, "clouds", frameVal);
+      cloud.setDepth(-1);
+      this.clouds.push(cloud);
+    }
+
     // Background
     this.bg = this.add.image(width / 2, height / 2, "bg_stadium");
+    this.bg.setDepth(0);
 
     // Goalkeeper (at the bottom)
     this.goalkeeper = this.add.sprite(width / 2, height - 150, "goalkeeper", 2);
     this.goalkeeper.setOrigin(0.5, 1); // Anchor at bottom center
+    this.goalkeeper.setDepth(2);
 
     // Kicker (at the middle-top, standing on the pitch)
     this.kicker = this.add.sprite(width / 2, height * 0.6, "kicker", 0);
     this.kicker.setOrigin(0.5, 1);
+    this.kicker.setDepth(1);
 
     // Register kicker animations
     this.anims.create({
@@ -151,6 +174,11 @@ export class MainGame extends Scene {
   }
 
   updateLayout(width: number, height: number) {
+    this.drawSky();
+    this.clouds.forEach(cloud => {
+      this.animateCloud(cloud, false);
+    });
+
     this.bg.setPosition(width / 2, height / 2);
     const scaleX = width / this.bg.width;
     const scaleY = height / this.bg.height;
@@ -247,6 +275,19 @@ export class MainGame extends Scene {
       const remaining = this.timer;
       const intensity = GAME_CONSTANTS.TENSION_SHAKE_BASE_INTENSITY - (remaining * 0.001);
       this.cameras.main.shake(1000, Math.max(0.001, intensity));
+
+      // Sky sunset gradient transition
+      if (!this.skyColorTween) {
+        this.skyColorTween = this.tweens.add({
+          targets: this,
+          skyColorProgress: 1.0,
+          duration: 2000, // Transition to red sunset over 2 seconds
+          ease: "Quad.easeOut",
+          onUpdate: () => {
+            this.drawSky();
+          }
+        });
+      }
 
       // Background pulsing orange-red (桔紅色) tint tween
       if (!this.bgTintTween) {
@@ -367,6 +408,7 @@ export class MainGame extends Scene {
       football.setScale(minScale); // Very small at start
       football.clearTint();
       football.rotation = 0;
+      football.setDepth(1.5); // One layer above kicker (depth 1), but below goalkeeper (depth 2)
 
       // Hitbox padding for mobile (放寬為寬度的 1.5 倍以降低點擊難度)
       // Reuse the sharedHitArea to prevent Geometry instantiation per spawn
@@ -609,5 +651,89 @@ export class MainGame extends Scene {
     if (this.goalkeeper) {
       this.goalkeeper.setScale(this.gkBaseScale);
     }
+  }
+
+  private drawSky() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    // Daylight sky colors (vibrant summer daylight blue gradient)
+    const normalTop = 0x0288d1;
+    const normalBottom = 0x81d4fa;
+
+    // Sunset tension sky colors
+    const tensionTop = 0x1f0212;
+    const tensionBottom = 0xd84315;
+
+    const t = this.skyColorProgress;
+    const topColor = this.interpolateColor(normalTop, tensionTop, t);
+    const bottomColor = this.interpolateColor(normalBottom, tensionBottom, t);
+
+    this.skyGraphics.clear();
+    this.skyGraphics.fillGradientStyle(topColor, topColor, bottomColor, bottomColor, 1);
+    this.skyGraphics.fillRect(0, 0, width, height);
+  }
+
+  private interpolateColor(color1: number, color2: number, t: number): number {
+    const r1 = (color1 >> 16) & 0xff;
+    const g1 = (color1 >> 8) & 0xff;
+    const b1 = color1 & 0xff;
+
+    const r2 = (color2 >> 16) & 0xff;
+    const g2 = (color2 >> 8) & 0xff;
+    const b2 = color2 & 0xff;
+
+    const r = Math.floor(r1 + (r2 - r1) * t);
+    const g = Math.floor(g1 + (g2 - g1) * t);
+    const b = Math.floor(b1 + (b2 - b1) * t);
+
+    return (r << 16) | (g << 8) | b;
+  }
+
+  private animateCloud(cloud: Phaser.GameObjects.Sprite, startFromLeft: boolean) {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    // Randomize cloud scale (1200px width is too large, scaling to 0.08 - 0.22)
+    const scale = Phaser.Math.FloatBetween(0.08, 0.22);
+    cloud.setScale(scale);
+
+    // Randomize opacity
+    cloud.setAlpha(Phaser.Math.FloatBetween(0.3, 0.8));
+
+    // Randomize Y position in the sky (between 5% and 40% height of screen)
+    const y = Phaser.Math.FloatBetween(height * 0.05, height * 0.4);
+    cloud.setY(y);
+
+    const cloudWidth = cloud.width * scale;
+    let startX: number;
+    if (startFromLeft) {
+      startX = -cloudWidth / 2;
+    } else {
+      // For initial setup / resize updates, distribute clouds randomly across screen width
+      startX = Phaser.Math.FloatBetween(-cloudWidth / 2, width + cloudWidth / 2);
+    }
+    cloud.setX(startX);
+
+    const endX = width + cloudWidth / 2;
+    const distance = endX - startX;
+
+    // Speed scales with scale for parallax effect (bigger clouds move faster)
+    const speed = scale * 120 + 15; // px per second
+    const duration = (distance / speed) * 1000; // in milliseconds
+
+    this.tweens.killTweensOf(cloud);
+
+    this.tweens.add({
+      targets: cloud,
+      x: endX,
+      duration: duration,
+      ease: "Linear",
+      onComplete: () => {
+        // Change frame to random cloud style on recycle, and start from offscreen left
+        cloud.setFrame(Phaser.Math.Between(0, 3));
+        this.animateCloud(cloud, true);
+      }
+    });
   }
 }

@@ -110,7 +110,7 @@ export function GameOverScreen({
                   placeholder={t("leaderboard.nicknamePlaceholder")}
                   className="game-input"
                   maxLength={GAME_CONSTANTS.LEADERBOARD_MAX_NAME_LENGTH}
-                  disabled={submittingScore}
+                  disabled={submittingScore || !showButtons}
                 />
                 {submitError && (
                   <div className="text-red-500 text-xs font-bold mb-2">
@@ -119,7 +119,7 @@ export function GameOverScreen({
                 )}
                 <button
                   onClick={handleSubmitScore}
-                  disabled={submittingScore || !nickname.trim()}
+                  disabled={submittingScore || !nickname.trim() || !showButtons}
                   className="game-btn game-btn-secondary py-2 px-6 text-md w-full"
                 >
                   {submittingScore ? t("leaderboard.submitting") : t("leaderboard.submit")}
@@ -143,6 +143,7 @@ export function GameOverScreen({
                 loadLeaderboard();
                 setViewState("leaderboard");
               }}
+              disabled={!showButtons}
               className={`game-btn game-btn-primary py-2.5 px-6 text-md w-[85%] mt-2 ${delayedBtnClass}`}
             >
               {t("leaderboard.title")}
@@ -163,6 +164,7 @@ export function GameOverScreen({
             {/* Back to Summary Button */}
             <button
               onClick={() => setViewState("summary")}
+              disabled={!showButtons}
               className={`game-btn game-btn-secondary py-2.5 px-6 text-md w-[85%] mt-2 ${delayedBtnClass}`}
             >
               {t("backToMenu")}
@@ -181,6 +183,7 @@ export function GameOverScreen({
         <div className={`footer-btn-container ${delayedBtnClass}`}>
           <button
             onClick={restartGame}
+            disabled={!showButtons}
             className="btn-round-cyan"
             title={t("restartGame")}
           >
@@ -190,6 +193,7 @@ export function GameOverScreen({
           </button>
           <button
             onClick={backToMenu}
+            disabled={!showButtons}
             className="btn-round-cyan"
             title={t("backToMenu")}
           >

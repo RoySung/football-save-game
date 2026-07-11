@@ -1029,3 +1029,16 @@
   width: 16px;
   height: 16px;
 }
+
+/* Disabled button interactions and styling */
+.game-btn:disabled,
+.btn-round-cyan:disabled {
+  pointer-events: none !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.game-btn:disabled {
+  opacity: 0.6;
+}
+

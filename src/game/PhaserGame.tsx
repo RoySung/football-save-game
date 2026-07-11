@@ -8,12 +8,14 @@ export const PhaserGame = memo(() => {
     useEffect(() => {
         if (!gameRef.current) {
             gameRef.current = new Game(config);
+            (window as any).game = gameRef.current;
         }
 
         return () => {
             if (gameRef.current) {
                 gameRef.current.destroy(true);
                 gameRef.current = null;
+                delete (window as any).game;
             }
         };
     }, []);
