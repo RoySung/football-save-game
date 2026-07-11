@@ -278,7 +278,12 @@ export class MainGame extends Scene {
 
     // Difficulty scaling: spawn delay decreases as time runs out
     const progress = 1 - this.timer / GAME_CONSTANTS.DURATION;
-    const currentDelay = this.baseSpawnDelay * (1 - progress * GAME_CONSTANTS.SPAWN_MIN_DELAY_FACTOR); // 2000ms -> 800ms
+    let currentDelay = this.baseSpawnDelay * (1 - progress * GAME_CONSTANTS.SPAWN_MIN_DELAY_FACTOR); // 2000ms -> 800ms
+
+    // Increase kicking frequency in high-tension mode
+    if (this.isTensionMode) {
+      currentDelay /= GAME_CONSTANTS.TENSION_SPAWN_SPEED_FACTOR;
+    }
 
     this.spawnEvent = this.time.delayedCall(currentDelay, () => {
       this.spawnFootball();
@@ -327,8 +332,9 @@ export class MainGame extends Scene {
       this.kicker.anims.timeScale = this.isTensionMode ? GAME_CONSTANTS.TENSION_ANIM_SPEED_FACTOR : 1.0;
     }
 
-    // Delay ball spawning by 150ms to align with physical kick contact frame
-    this.time.delayedCall(GAME_CONSTANTS.BALL_SPAWN_DELAY_OFFSET, () => {
+    // Delay ball spawning to align with physical kick contact frame (adjusted for tension speed)
+    const spawnDelayOffset = GAME_CONSTANTS.BALL_SPAWN_DELAY_OFFSET / (this.isTensionMode ? GAME_CONSTANTS.TENSION_ANIM_SPEED_FACTOR : 1.0);
+    this.time.delayedCall(spawnDelayOffset, () => {
       if (this.isGameOver) return;
 
       const targetY = height + 50; // slightly off screen
