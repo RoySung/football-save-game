@@ -14,6 +14,7 @@ export const GAME_CONSTANTS = {
   BALL_HITBOX_SCALE: 0.75,
   BALL_BASE_DURATION: 2000, // ms
   BALL_MIN_DURATION_FACTOR: 0.5, // progress multiplier (1 - progress * 0.5 => min duration 1000ms)
+  BALL_ROTATION_SPEED: 0.3, // radians per frame (increased from 0.15 for faster spin)
 
   // Lob ball settings
   LOB_BALL_CHANCE: 0.25, // 25% chance to spawn a lob ball

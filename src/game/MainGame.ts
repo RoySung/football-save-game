@@ -20,6 +20,8 @@ export class MainGame extends Scene {
   private saveZoneYMin!: number;
   private isGameStarted: boolean = false;
   private plusTextPool: Phaser.GameObjects.Text[] = [];
+  private footballPool!: Phaser.GameObjects.Group;
+  private sharedHitArea!: Phaser.Geom.Circle;
 
   constructor() {
     super("MainGame");
@@ -85,6 +87,22 @@ export class MainGame extends Scene {
       .setDepth(10);
       this.plusTextPool.push(txt);
     }
+
+    // Create a pool for footballs to avoid GC stuttering on mobile
+    this.footballPool = this.add.group({
+      classType: Phaser.GameObjects.Sprite,
+      maxSize: 10,
+      runChildUpdate: false
+    });
+
+    // Create a single shared hit area to prevent allocating memory for Geometries on every spawn
+    const fbTex = this.textures.get("football")?.get();
+    const fbWidth = fbTex ? fbTex.width : 2048;
+    this.sharedHitArea = new Phaser.Geom.Circle(
+      fbWidth / 2,
+      fbWidth / 2,
+      fbWidth * GAME_CONSTANTS.BALL_HITBOX_SCALE
+    );
 
     this.updateLayout(width, height);
 
@@ -276,17 +294,21 @@ export class MainGame extends Scene {
         cp2y = startY + (targetY - startY) * 0.7;
       }
 
-      const football = this.add.sprite(startX, startY, "football");
+      const football = this.footballPool.get(startX, startY, "football") as Phaser.GameObjects.Sprite;
+      if (!football) return; // safety check if pool is exhausted
+
+      football.setActive(true).setVisible(true).setAlpha(1);
+      football.setPosition(startX, startY);
       football.setScale(minScale); // Very small at start
-      football.setInteractive({ useHandCursor: true });
+      football.clearTint();
+      football.rotation = 0;
 
       // Hitbox padding for mobile (放寬為寬度的 1.5 倍以降低點擊難度)
-      const hitArea = new Phaser.Geom.Circle(
-        football.width / 2,
-        football.height / 2,
-        football.width * GAME_CONSTANTS.BALL_HITBOX_SCALE,
-      );
-      football.setInteractive(hitArea, Phaser.Geom.Circle.Contains);
+      // Reuse the sharedHitArea to prevent Geometry instantiation per spawn
+      football.setInteractive(this.sharedHitArea, Phaser.Geom.Circle.Contains);
+      if (football.input) {
+        football.input.cursor = 'pointer';
+      }
 
       const progress = 1 - this.timer / GAME_CONSTANTS.DURATION;
       const baseDuration = isLob ? GAME_CONSTANTS.LOB_BALL_BASE_DURATION : GAME_CONSTANTS.BALL_BASE_DURATION;
@@ -321,13 +343,17 @@ export class MainGame extends Scene {
             currentScale = minScale + t * (maxScale - minScale);
           }
           football.setScale(currentScale);
-          football.rotation += 0.15;
+          football.rotation += GAME_CONSTANTS.BALL_ROTATION_SPEED;
         },
         onComplete: () => {
-          football.destroy(); // Missed
+          football.off("pointerdown");
+          football.disableInteractive();
+          this.footballPool.killAndHide(football); // Missed
         },
       });
 
+      // Clear previous listeners to avoid duplicates when reusing pooled objects
+      football.off("pointerdown");
       football.on("pointerdown", () => {
         if (this.isGameOver) return;
 
@@ -347,7 +373,10 @@ export class MainGame extends Scene {
             alpha: 0,
             scale: football.scale * 1.5,
             duration: 150,
-            onComplete: () => football.destroy(),
+            onComplete: () => {
+              football.off("pointerdown");
+              this.footballPool.killAndHide(football);
+            },
           });
 
           // Trigger Goalkeeper save animation based on horizontal distance
@@ -430,7 +459,11 @@ export class MainGame extends Scene {
         } else {
           // Clicked too early
           football.setTint(0xff0000);
-          this.time.delayedCall(200, () => football.clearTint());
+          this.time.delayedCall(200, () => {
+            if (football.active) {
+              football.clearTint();
+            }
+          });
         }
       });
     });
@@ -440,6 +473,15 @@ export class MainGame extends Scene {
     this.isGameOver = true;
     if (this.timerEvent) this.timerEvent.destroy();
     if (this.spawnEvent) this.spawnEvent.destroy();
+
+    // Clean up all in-flight footballs to prevent stale tween callbacks after scene restart
+    this.footballPool.getChildren().forEach(child => {
+      this.tweens.killTweensOf(child);
+      child.off("pointerdown");
+      (child as Phaser.GameObjects.Sprite).disableInteractive();
+      this.footballPool.killAndHide(child);
+    });
+
     EventBus.emit("game-over", this.score);
   }
 }
