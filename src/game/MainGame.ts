@@ -24,6 +24,7 @@ export class MainGame extends Scene {
   private sharedHitArea!: Phaser.Geom.Circle;
   private isTensionMode: boolean = false;
   private bgTintTween?: Phaser.Tweens.Tween;
+  private bgMusic?: Phaser.Sound.BaseSound;
 
   constructor() {
     super("MainGame");
@@ -36,6 +37,14 @@ export class MainGame extends Scene {
     this.isGameStarted = false;
     this.isTensionMode = false;
     this.bgTintTween = undefined;
+
+    // Load initial mute state from localStorage
+    const isMuted = localStorage.getItem("game-muted") === "true";
+    this.sound.mute = isMuted;
+
+    // Background music (looping with 0.35 volume)
+    this.bgMusic = this.sound.add("bg_music", { loop: true, volume: 0.35 });
+    this.bgMusic.play();
 
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
@@ -112,11 +121,17 @@ export class MainGame extends Scene {
 
     EventBus.on("start-game", this.startGame, this);
     EventBus.on("restart-game", this.restartGame, this);
+    EventBus.on("toggle-mute", this.handleToggleMute, this);
 
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       EventBus.off("start-game", this.startGame, this);
       EventBus.off("restart-game", this.restartGame, this);
+      EventBus.off("toggle-mute", this.handleToggleMute, this);
       this.scale.off("resize", this.resize, this);
+      if (this.bgMusic) {
+        this.bgMusic.stop();
+        this.bgMusic.destroy();
+      }
     });
 
     this.scale.on("resize", this.resize, this);
@@ -126,6 +141,10 @@ export class MainGame extends Scene {
     if (!this.scene.isActive()) return;
     this.cameras.main.setSize(gameSize.width, gameSize.height);
     this.updateLayout(gameSize.width, gameSize.height);
+  }
+
+  private handleToggleMute(muted: boolean) {
+    this.sound.mute = muted;
   }
 
   updateLayout(width: number, height: number) {
@@ -398,6 +417,9 @@ export class MainGame extends Scene {
           this.score++;
           EventBus.emit("update-score", this.score);
           tween.stop();
+
+          // Play block success sound
+          this.sound.play("save_sound", { volume: 0.65 });
 
           // Show particle / fade effect
           this.tweens.add({

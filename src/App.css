@@ -985,3 +985,47 @@
 .bottom-safe-4 {
   bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
+
+/* Volume Switcher Button */
+.volume-toggle-container {
+  position: absolute;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  left: 1rem;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+.volume-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  border: 2px solid var(--stroke-color);
+  border-radius: var(--radius-full);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 4px 0 var(--stroke-color);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+  cursor: pointer;
+  user-select: none;
+  color: var(--color-text);
+  outline: none;
+}
+
+.volume-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--stroke-color);
+}
+
+.volume-toggle-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--stroke-color);
+}
+
+.volume-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+}

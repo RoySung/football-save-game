@@ -19,6 +19,8 @@ export class BootScene extends Scene {
       frameWidth: 512,
       frameHeight: 512,
     });
+    this.load.audio("bg_music", `/music/bg.wav?v=${v}`);
+    this.load.audio("save_sound", `/music/save-1.mp3?v=${v}`);
   }
 
   create() {
