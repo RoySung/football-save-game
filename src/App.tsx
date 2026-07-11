@@ -3,7 +3,12 @@ import { PhaserGame } from "./game/PhaserGame";
 import { EventBus } from "./game/EventBus";
 import { useTranslation } from "react-i18next";
 import { type Language } from "./locales";
-import { qualifiesForLeaderboard, submitScore, fetchLeaderboard, type LeaderboardEntry } from "./leaderboard";
+import {
+  qualifiesForLeaderboard,
+  submitScore,
+  fetchLeaderboard,
+  type LeaderboardEntry,
+} from "./leaderboard";
 import { isFirebaseConfigured } from "./firebase";
 import { StartScreen } from "./components/StartScreen";
 import { GameOverScreen } from "./components/GameOverScreen";
@@ -20,7 +25,9 @@ function App() {
     return localStorage.getItem("game-muted") === "true";
   });
   const [scoreAnimKey, setScoreAnimKey] = useState(0);
-  const [countdown, setCountdown] = useState<number>(GAME_CONSTANTS.COUNTDOWN_DURATION);
+  const [countdown, setCountdown] = useState<number>(
+    GAME_CONSTANTS.COUNTDOWN_DURATION,
+  );
   const [bestScore, setBestScore] = useState<number>(() => {
     const saved = localStorage.getItem("game-best-score");
     return saved ? parseInt(saved, 10) : 0;
@@ -31,21 +38,28 @@ function App() {
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
-  const [logoState, setLogoState] = useState<"normal" | "shocked" | "angry">("normal");
+  const [logoState, setLogoState] = useState<"normal" | "shocked" | "angry">(
+    "normal",
+  );
   const [logoClickCount, setLogoClickCount] = useState(0);
   const logoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nickname, setNickname] = useState(() => {
     return localStorage.getItem("game-nickname") || "";
   });
-  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<
+    LeaderboardEntry[]
+  >([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const [isQualify, setIsQualify] = useState(true);
   const [submittingScore, setSubmittingScore] = useState(false);
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
-  const [viewState, setViewState] = useState<"summary" | "leaderboard">("summary");
-  const [showLeaderboardFromStart, setShowLeaderboardFromStart] = useState(false);
+  const [viewState, setViewState] = useState<"summary" | "leaderboard">(
+    "summary",
+  );
+  const [showLeaderboardFromStart, setShowLeaderboardFromStart] =
+    useState(false);
 
   useEffect(() => {
     document.title = t("metaTitle");
@@ -73,7 +87,7 @@ function App() {
       setGameState("gameover");
       setViewState("summary");
       setScoreSubmitted(false);
-      
+
       const savedBest = localStorage.getItem("game-best-score");
       const currentBest = savedBest ? parseInt(savedBest, 10) : 0;
       if (finalScore > currentBest) {
@@ -254,15 +268,33 @@ function App() {
 
       {/* Volume Switcher */}
       <div className="volume-toggle-container">
-        <button onClick={toggleMute} className="volume-toggle-btn" aria-label="Toggle Volume">
+        <button
+          onClick={toggleMute}
+          className="volume-toggle-btn"
+          aria-label="Toggle Volume"
+        >
           {isMuted ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
               <line x1="23" y1="9" x2="17" y2="15"></line>
               <line x1="17" y1="9" x2="23" y2="15"></line>
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
             </svg>
@@ -288,7 +320,7 @@ function App() {
       <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between">
         {/* HUD */}
         {gameState === "playing" && (
-          <div className="p-4 flex justify-between items-start pt-safe w-full max-w-md mx-auto anim-slide-down">
+          <div className="p-4 flex justify-between items-start pt-safe w-full max-w-md mx-auto anim-slide-down mt-2">
             {/* Score Pill */}
             <div key={scoreAnimKey} className="hud-pill anim-score-pop">
               <span className="hud-label">{t("hud.goal")}</span> {score}

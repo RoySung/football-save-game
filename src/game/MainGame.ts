@@ -16,6 +16,9 @@ export class MainGame extends Scene {
   private fixedStartY!: number;
   private gkStartX!: number;
   private gkStartY!: number;
+  private gkBaseScale: number = 1.0;
+  private gkBreathingTween?: Phaser.Tweens.Tween;
+  private isGkDiving: boolean = false;
   private baseSpawnDelay: number = GAME_CONSTANTS.BASE_SPAWN_DELAY;
   private saveZoneYMin!: number;
   private isGameStarted: boolean = false;
@@ -166,6 +169,7 @@ export class MainGame extends Scene {
     const gkScale = (isLandscape
       ? Math.min((height * 0.35) / 1024, bgScale * 0.48 * bgWidthFactor)
       : bgScale * 0.48 * bgWidthFactor) * gkScaleMultiplier;
+    this.gkBaseScale = gkScale;
     this.goalkeeper.setScale(gkScale);
     
     // Read safe area bottom inset if available
@@ -202,6 +206,10 @@ export class MainGame extends Scene {
     const saveZonePercent = GAME_CONSTANTS.SAVE_ZONE_HEIGHT_PERCENT;
     const bottomPadding = GAME_CONSTANTS.SAVE_ZONE_BOTTOM_PADDING;
     this.saveZoneYMin = height * (1 - saveZonePercent) - (bottomPadding + safeAreaBottom);
+
+    if (!this.isGameOver && !this.isGkDiving) {
+      this.startGoalkeeperBreathing();
+    }
   }
 
   startGame() {
@@ -438,11 +446,13 @@ export class MainGame extends Scene {
 
           // Reset any pending goalkeeper motion/pose to prevent displacement accumulation
           this.tweens.killTweensOf(this.goalkeeper);
+          this.stopGoalkeeperBreathing();
           this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
           this.goalkeeper.setAngle(0);
           this.goalkeeper.setFrame(2);
+          this.isGkDiving = true;
 
-          const gkScale = this.goalkeeper.scale;
+          const gkScale = this.gkBaseScale;
           const threshold = GAME_CONSTANTS.GK_DIVE_THRESHOLD * gkScale;
           const diveDistance = GAME_CONSTANTS.GK_DIVE_DISTANCE * gkScale;
           const diveHeight = GAME_CONSTANTS.GK_DIVE_HEIGHT_OFFSET * gkScale;
@@ -469,6 +479,8 @@ export class MainGame extends Scene {
                 this.goalkeeper.setFrame(2);
                 this.goalkeeper.setAngle(0);
                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
+                this.isGkDiving = false;
+                this.startGoalkeeperBreathing();
               },
             });
           } else if (diffX < -threshold) {
@@ -486,6 +498,8 @@ export class MainGame extends Scene {
                 this.goalkeeper.setFrame(2);
                 this.goalkeeper.setAngle(0);
                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
+                this.isGkDiving = false;
+                this.startGoalkeeperBreathing();
               },
             });
           } else {
@@ -500,6 +514,8 @@ export class MainGame extends Scene {
               onComplete: () => {
                 this.goalkeeper.setFrame(2);
                 this.goalkeeper.setPosition(this.gkStartX, this.gkStartY);
+                this.isGkDiving = false;
+                this.startGoalkeeperBreathing();
               },
             });
           }
@@ -533,6 +549,7 @@ export class MainGame extends Scene {
   gameOver() {
     this.isGameOver = true;
     this.isTensionMode = false;
+    this.stopGoalkeeperBreathing();
     if (this.timerEvent) this.timerEvent.destroy();
     if (this.spawnEvent) this.spawnEvent.destroy();
 
@@ -562,5 +579,29 @@ export class MainGame extends Scene {
     });
 
     EventBus.emit("game-over", this.score);
+  }
+
+  private startGoalkeeperBreathing() {
+    this.stopGoalkeeperBreathing();
+
+    this.gkBreathingTween = this.tweens.add({
+      targets: this.goalkeeper,
+      scaleY: this.gkBaseScale * GAME_CONSTANTS.GK_BREATH_SCALE_Y,
+      scaleX: this.gkBaseScale * GAME_CONSTANTS.GK_BREATH_SCALE_X,
+      duration: GAME_CONSTANTS.GK_BREATH_DURATION,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+  }
+
+  private stopGoalkeeperBreathing() {
+    if (this.gkBreathingTween) {
+      this.gkBreathingTween.stop();
+      this.gkBreathingTween = undefined;
+    }
+    if (this.goalkeeper) {
+      this.goalkeeper.setScale(this.gkBaseScale);
+    }
   }
 }

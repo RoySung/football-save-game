@@ -33,6 +33,9 @@ export const GAME_CONSTANTS = {
   GK_DIVE_DURATION: 250, // ms
   GK_DIVE_HOLD: 80, // ms
   GK_JUMP_DURATION: 180, // ms
+  GK_BREATH_DURATION: 1200, // ms (single direction: inhale/exhale)
+  GK_BREATH_SCALE_Y: 1.03, // Y-axis max scale factor (inhale)
+  GK_BREATH_SCALE_X: 0.98, // X-axis min scale factor (inhale)
 
   // Success floating text (+1 text)
   SCORE_EFFECT_FONT_SIZE: "36px",
