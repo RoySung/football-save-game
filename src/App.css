@@ -57,7 +57,7 @@
   box-shadow: 0 2px 0 var(--color-primary-dark);
 }
 
-/* Secondary button (green 3D) */
+/* Secondary button (yellow 3D) */
 .game-btn-secondary {
   background: var(--color-secondary);
   color: var(--color-text);
@@ -154,12 +154,21 @@
   border-radius: 28px;
   padding: 14px 24px;
   width: 85%;
-  margin: 12px auto;
+  margin: 12px auto 20px auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.06);
+}
+
+.score-box-label {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-text-light);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .score-box-value {
@@ -177,22 +186,6 @@
   margin-top: 6px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-/* 綠色藥丸裝飾 */
-.score-pill-green {
-  background: var(--color-secondary);
-  color: var(--color-text);
-  padding: 8px 24px;
-  font-size: 1rem;
-  font-weight: 900;
-  border-radius: var(--radius-full);
-  box-shadow: 0 4px 0 var(--color-secondary-dark);
-  text-transform: uppercase;
-  margin: 8px auto 14px auto;
-  width: 85%;
-  text-align: center;
-  letter-spacing: 0.03em;
 }
 
 /* 分享按鈕與貼紙 */
@@ -307,28 +300,20 @@
   stroke-width: 0.5px;
 }
 
-/* 左下角排行榜標籤 */
-.leaderboard-tab {
-  position: absolute;
-  bottom: -12px;
-  left: 12px;
-  background: var(--color-purple);
-  width: 44px;
-  height: 44px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 0 var(--color-purple-dark);
-  color: var(--color-text-white);
-  z-index: 10;
-  transform: rotate(-10deg);
+/* Highlight button (e.g. Restart) styling */
+.btn-round-highlight {
+  background: var(--color-secondary);
+  box-shadow: 0 6px 0 var(--color-secondary-dark);
 }
 
-.leaderboard-tab svg {
-  width: 24px;
-  height: 24px;
-  fill: currentColor;
+.btn-round-highlight:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 var(--color-secondary-dark);
+}
+
+.btn-round-highlight:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--color-secondary-dark);
 }
 
 /* === HUD 藥丸型元素 === */
@@ -355,20 +340,34 @@
 }
 
 .hud-pill-critical {
-  animation: pulseCritical 0.4s ease-in-out infinite, shakeCritical 0.2s infinite;
+  animation:
+    pulseCritical 0.4s ease-in-out infinite,
+    shakeCritical 0.2s infinite;
   color: #d84315;
   border-color: #ff5722;
 }
 
 @keyframes pulseCritical {
-  0%, 100% { background-color: #FFCCBC; }
-  50% { background-color: #FF8A65; }
+  0%,
+  100% {
+    background-color: #ffccbc;
+  }
+  50% {
+    background-color: #ff8a65;
+  }
 }
 
 @keyframes shakeCritical {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
 }
 
 .hud-label {
@@ -407,6 +406,19 @@
 
 .anim-pulse {
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+.anim-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .anim-slide-down {
@@ -964,15 +976,16 @@
 
 .leaderboard-not-qualified {
   font-size: 0.8rem;
-  color: var(--color-accent);
-  font-weight: 800;
-  margin: 10px auto;
+  color: var(--color-accent-dark);
+  font-weight: 900;
+  margin: 12px auto;
   text-align: center;
   width: 85%;
-  background: rgba(255, 68, 68, 0.05);
-  border: 2px dashed rgba(255, 68, 68, 0.2);
-  border-radius: 12px;
-  padding: 6px;
+  background: var(--color-accent-light);
+  border: var(--stroke-width) solid var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+  padding: 8px;
 }
 
 /* Safe Area Utilities */
@@ -1041,4 +1054,3 @@
 .game-btn:disabled {
   opacity: 0.6;
 }
-

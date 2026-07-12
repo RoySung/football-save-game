@@ -50,5 +50,9 @@
   "aboutMe": {
     "title": "開發者：Roy Sung",
     "close": "關閉"
+  },
+  "share": {
+    "canvasText": "成功撲救了 {{count}} 球！",
+    "message": "⚽ Football Save — 我撲救了 {{count}} 球！\n你能超越我嗎？來挑戰吧！\n🎮 {{shareUrl}}"
   }
 }

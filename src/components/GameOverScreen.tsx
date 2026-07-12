@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { LeaderboardView } from "./LeaderboardView";
 import { GAME_CONSTANTS } from "../constants";
 import { type LeaderboardEntry } from "../leaderboard";
 import { AboutMe } from "./AboutMe";
+import { shareScore } from "../shareUtils";
 
 interface GameOverScreenProps {
   score: number;
@@ -50,8 +51,19 @@ export function GameOverScreen({
   isFirebaseConfigured,
   submitError,
 }: GameOverScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showButtons, setShowButtons] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShare = useCallback(async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+    try {
+      await shareScore(score, i18n.language);
+    } finally {
+      setIsSharing(false);
+    }
+  }, [score, i18n.language, isSharing]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,18 +95,11 @@ export function GameOverScreen({
 
             {/* Score Box */}
             <div className="score-box">
+              <span className="score-box-label">{t("totalSaves")}</span>
               <span className="score-box-value">{score}</span>
               <span className="score-box-best">
                 {t("hud.best")}: {bestScore}
               </span>
-            </div>
-
-            {/* Green Pill Badge */}
-            <div
-              className="score-pill-green"
-              style={{ marginBottom: "20px" }}
-            >
-              {t("savesEarned", { count: score })}
             </div>
 
             {/* Nickname Input & Submission */}
@@ -172,19 +177,29 @@ export function GameOverScreen({
           </>
         )}
 
-        {/* Leaderboard Tab (decorative) */}
-        <div className="leaderboard-tab" title={t("hud.best")} aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M2 20h20v2H2zm2-2h4V10H4zm6 0h4V6h-4zm6 0h4v-5h-4z" />
-          </svg>
-        </div>
 
         {/* Footer Buttons floating at bottom */}
         <div className={`footer-btn-container ${delayedBtnClass}`}>
           <button
+            onClick={handleShare}
+            disabled={!showButtons || isSharing}
+            className="btn-round-cyan"
+            title={t("shareScore")}
+          >
+            {isSharing ? (
+              <svg viewBox="0 0 24 24" className="anim-spin" fill="none" stroke="currentColor" strokeWidth="3">
+                <circle cx="12" cy="12" r="10" strokeDasharray="32 32" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24">
+                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
+              </svg>
+            )}
+          </button>
+          <button
             onClick={restartGame}
             disabled={!showButtons}
-            className="btn-round-cyan"
+            className="btn-round-cyan btn-round-highlight"
             title={t("restartGame")}
           >
             <svg viewBox="0 0 24 24">

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { type LeaderboardEntry } from "../leaderboard";
 
@@ -21,6 +22,27 @@ export function LeaderboardView({
   containerClassName = "leaderboard-container",
 }: LeaderboardViewProps) {
   const { t } = useTranslation();
+  const rowRef = useRef<HTMLTableRowElement | null>(null);
+  const hasScrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (!scoreSubmitted) {
+      hasScrolledRef.current = false;
+      return;
+    }
+
+    if (!isLoading && rowRef.current && !hasScrolledRef.current) {
+      hasScrolledRef.current = true;
+      const timer = setTimeout(() => {
+        rowRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, scoreSubmitted, entries]);
+
 
   return (
     <>
@@ -66,6 +88,7 @@ export function LeaderboardView({
                   return (
                     <tr
                       key={entry.id || index}
+                      ref={isCurrentPlayerScore ? rowRef : undefined}
                       className={`leaderboard-row ${isCurrentPlayerScore ? "highlighted-row" : ""}`}
                     >
                       <td className="leaderboard-cell cell-rank">

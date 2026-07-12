@@ -50,5 +50,9 @@
   "aboutMe": {
     "title": "Dev: Roy Sung",
     "close": "Close"
+  },
+  "share": {
+    "canvasText": "{{count}} SAVES!",
+    "message": "⚽ Football Save — I saved {{count}} balls!\nCan you beat my score? Try now!\n🎮 {{shareUrl}}"
   }
 }

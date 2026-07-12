@@ -15,10 +15,10 @@
   --color-primary-darker: #008EA6;
   --color-primary-light: #CBEFF7;
 
-  /* Secondary: 亮草綠色 (用於狀態藥丸、貼紙) */
-  --color-secondary: #8CD600;
-  --color-secondary-dark: #6FA600;
-  --color-secondary-light: #E2F5C5;
+  /* Secondary: 亮金黃色 (用於狀態藥丸、貼紙，已由綠色調整為黃色) */
+  --color-secondary: #FFD600;
+  --color-secondary-dark: #E0BC00;
+  --color-secondary-light: #FFF9C4;
 
   /* Accent: 珊瑚紅 (用於主標題、歷史最高徽章) */
   --color-accent: #FF6B6B;
