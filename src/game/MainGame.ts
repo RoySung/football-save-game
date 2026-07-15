@@ -39,7 +39,9 @@ export class MainGame extends Scene {
 
   create() {
     this.score = 0;
-    this.timer = GAME_CONSTANTS.DURATION;
+    const urlParams = new URLSearchParams(window.location.search);
+    const durationParam = urlParams.get("duration");
+    this.timer = durationParam ? parseInt(durationParam, 10) : GAME_CONSTANTS.DURATION;
     this.isGameOver = false;
     this.isGameStarted = false;
     this.isTensionMode = false;
@@ -451,6 +453,12 @@ export class MainGame extends Scene {
           }
           football.setScale(currentScale);
           football.rotation += GAME_CONSTANTS.BALL_ROTATION_SPEED;
+
+          // Auto-play for demo/recording
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get("autoplay") === "true" && y >= this.saveZoneYMin && football.input && football.input.enabled) {
+            football.emit("pointerdown");
+          }
         },
         onComplete: () => {
           football.off("pointerdown");

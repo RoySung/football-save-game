@@ -17,7 +17,11 @@ import "./App.css";
 
 function App() {
   const [score, setScore] = useState(0);
-  const [timer, setTimer] = useState<number>(GAME_CONSTANTS.DURATION);
+  const [timer, setTimer] = useState<number>(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const durationParam = urlParams.get("duration");
+    return durationParam ? parseInt(durationParam, 10) : GAME_CONSTANTS.DURATION;
+  });
   const [gameState, setGameState] = useState<
     "start" | "countdown" | "playing" | "gameover"
   >("start");
@@ -124,6 +128,16 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("autoplay") === "true") {
+      const timeout = setTimeout(() => {
+        startGame();
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
+
   const startCountdownFlow = (onFinish: () => void) => {
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
@@ -157,7 +171,9 @@ function App() {
 
   const restartGame = () => {
     setScore(0);
-    setTimer(GAME_CONSTANTS.DURATION);
+    const urlParams = new URLSearchParams(window.location.search);
+    const durationParam = urlParams.get("duration");
+    setTimer(durationParam ? parseInt(durationParam, 10) : GAME_CONSTANTS.DURATION);
     setIsNewBest(false);
     setShowLeaderboardFromStart(false);
     setSubmitError(null);
@@ -170,7 +186,9 @@ function App() {
 
   const backToMenu = () => {
     setScore(0);
-    setTimer(GAME_CONSTANTS.DURATION);
+    const urlParams = new URLSearchParams(window.location.search);
+    const durationParam = urlParams.get("duration");
+    setTimer(durationParam ? parseInt(durationParam, 10) : GAME_CONSTANTS.DURATION);
     setIsNewBest(false);
     setSubmitError(null);
     EventBus.emit("restart-game");
@@ -222,6 +240,22 @@ function App() {
   };
 
   const loadLeaderboard = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("autoplay") === "true") {
+      setIsLoadingLeaderboard(true);
+      setLeaderboardError(null);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setLeaderboardEntries([
+        { id: "1", name: "Roy ⚽", score: 18, timestamp: { seconds: Date.now()/1000 } },
+        { id: "2", name: "CatLover 🐾", score: 15, timestamp: { seconds: Date.now()/1000 - 3600 } },
+        { id: "3", name: "SoccerPro", score: 12, timestamp: { seconds: Date.now()/1000 - 7200 } },
+        { id: "4", name: "GK_Milo 🐈", score: 10, timestamp: { seconds: Date.now()/1000 - 10800 } },
+        { id: "5", name: "StrikerLeo", score: 8, timestamp: { seconds: Date.now()/1000 - 14400 } },
+      ]);
+      setIsLoadingLeaderboard(false);
+      return;
+    }
+
     if (!isFirebaseConfigured) {
       setLeaderboardError(t("leaderboard.notConfigured"));
       return;

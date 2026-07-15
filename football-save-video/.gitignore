@@ -1,0 +1,6 @@
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+renders/
+snapshots/
+output.mp4
